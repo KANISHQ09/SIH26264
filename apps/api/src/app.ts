@@ -1,0 +1,68 @@
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
+import { apiRouter } from './routes.js';
+import { demoAuthMiddleware } from './middleware/auth.js';
+import { initSchema } from './db/connection.js';
+
+export function createApp() {
+  // Ensure tables and indexes are ready
+  initSchema();
+
+  const app = express();
+
+  app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-demo-user-id', 'x-demo-role']
+  }));
+
+  app.use(express.json());
+
+  // Demo identity extraction middleware
+  app.use(demoAuthMiddleware);
+
+  // Mount API v1 and health check
+  app.use('/api/v1', apiRouter);
+  app.get('/health', (req, res) => {
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: 'Nexus 0 - AICTE OneView API',
+      version: '1.0.0-sih2026'
+    });
+  });
+
+  // Serve static frontend files if built
+  const distCandidates = [
+    path.resolve(process.cwd(), '../web/dist'),
+    path.resolve(process.cwd(), 'apps/web/dist'),
+    path.resolve(process.cwd(), 'dist/web')
+  ];
+
+  const targetDist = distCandidates.find(p => fs.existsSync(p));
+
+  if (targetDist) {
+    app.use(express.static(targetDist));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
+        return next();
+      }
+      res.sendFile(path.join(targetDist, 'index.html'));
+    });
+  }
+
+  // Global error handler
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Unhandled API Error:', err);
+    res.status(500).json({
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: err.message || 'An unexpected server error occurred'
+      }
+    });
+  });
+
+  return app;
+}
