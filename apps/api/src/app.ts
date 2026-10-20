@@ -4,11 +4,29 @@ import path from 'path';
 import fs from 'fs';
 import { apiRouter } from './routes.js';
 import { demoAuthMiddleware } from './middleware/auth.js';
-import { initSchema } from './db/connection.js';
+import { db, initSchema } from './db/connection.js';
+import { runSeed } from './db/seed.js';
 
 export function createApp() {
   // Ensure tables and indexes are ready
   initSchema();
+
+  // Auto-seed mock data if empty (e.g. fresh deployment)
+  try {
+    const caseRow = db.prepare('SELECT COUNT(*) as count FROM cases').get() as { count: number } | undefined;
+    const userRow = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number } | undefined;
+    if (!caseRow || caseRow.count === 0 || !userRow || userRow.count === 0) {
+      console.log('Fresh or empty database detected on startup. Automatically seeding mock data...');
+      runSeed();
+    }
+  } catch (err) {
+    console.warn('Auto-seed check triggered seeding:', err);
+    try {
+      runSeed();
+    } catch (e) {
+      console.error('Failed to auto-seed:', e);
+    }
+  }
 
   const app = express();
 

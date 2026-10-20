@@ -120,11 +120,11 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-white border border-nexus-border rounded-2xl shadow-nexus-elevated w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 cursor-default"
+        className="bg-white border border-nexus-border rounded-2xl shadow-nexus-elevated w-full max-w-4xl max-h-[95vh] sm:max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 cursor-default"
       >
         {/* Modal Top Bar */}
-        <div className="px-6 py-4 border-b border-nexus-border flex items-center justify-between bg-nexus-bg/70 shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-nexus-border flex items-center justify-between bg-nexus-bg/70 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span className="font-mono text-sm font-bold text-nexus-primary bg-nexus-primary-subtle px-2.5 py-1 rounded-md border border-nexus-primary-border">
               {caseData?.case_number || 'Loading...'}
             </span>
@@ -162,7 +162,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
 
         {/* Case Header Details & Action Toolbar */}
         {caseData && (
-          <div className="px-6 py-3.5 bg-white border-b border-nexus-border shrink-0 flex flex-wrap items-center justify-between gap-3">
+          <div className="px-4 sm:px-6 py-3 sm:py-3.5 bg-white border-b border-nexus-border shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
               <div
                 onClick={() => {
@@ -176,7 +176,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
                 <span>{caseData.institution_name}</span>
                 <span className="font-mono text-nexus-navy-light text-[11px]">({caseData.institution_code})</span>
               </div>
-              <div className="text-xs text-nexus-navy-muted flex items-center gap-3">
+              <div className="text-xs text-nexus-navy-muted flex flex-wrap items-center gap-2 sm:gap-3">
                 <span className="flex items-center gap-1">
                   <Briefcase className="w-3.5 h-3.5 text-nexus-navy-light" />
                   <span>{caseData.bureau_name}</span>
@@ -200,7 +200,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-start sm:self-auto">
               {canAssign && (
                 <button
                   onClick={() => setIsAssignOpen(true)}
@@ -225,7 +225,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
         )}
 
         {/* Tab Navigation */}
-        <div className="px-6 border-b border-nexus-border bg-nexus-bg/50 shrink-0 flex items-center gap-6">
+        <div className="px-4 sm:px-6 border-b border-nexus-border bg-nexus-bg/50 shrink-0 flex items-center gap-4 sm:gap-6 overflow-x-auto whitespace-nowrap scrollbar-none">
           <button
             onClick={() => setActiveTab('overview')}
             className={`py-3 text-xs font-semibold border-b-2 transition ${
@@ -274,7 +274,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {isLoading ? (
             <div className="py-16 text-center">
               <div className="w-8 h-8 border-2 border-nexus-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -529,11 +529,11 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
 
                             {/* Review Actions if pending and user is authorized */}
                             {c.review_status === 'pending' && canReviewRelated && (
-                              <div className="pt-2 border-t border-nexus-border/60 flex items-center justify-between">
+                              <div className="pt-2 border-t border-nexus-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <span className="text-[11px] text-amber-700 font-medium">
                                   Action Required: Verify whether these cases should be consolidated
                                 </span>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                                   <button
                                     onClick={() => handleReviewDecision(c.id, 'rejected')}
                                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition"

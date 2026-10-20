@@ -45,11 +45,11 @@ export const AuditTrailView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="bg-white border border-nexus-border rounded-2xl p-6 shadow-nexus-card flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-nexus-border rounded-2xl p-4 sm:p-6 shadow-nexus-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-bold text-nexus-navy">Immutable Regulatory Audit Trail</h1>
-            <span className="text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
+            <h1 className="text-lg sm:text-xl font-bold text-nexus-navy">Immutable Regulatory Audit Trail</h1>
+            <span className="text-[10px] sm:text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
               Compliance & Vigilance Log
             </span>
           </div>
@@ -59,15 +59,15 @@ export const AuditTrailView: React.FC = () => {
         </div>
 
         {/* Filter controls */}
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
+          <div className="relative flex-1 sm:w-56">
             <Search className="w-4 h-4 text-nexus-navy-light absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search actor, case ID..."
-              className="bg-nexus-bg text-nexus-navy text-xs pl-8 pr-3 py-2 rounded-lg border border-nexus-border focus:border-nexus-primary focus:bg-white focus:outline-none"
+              className="w-full bg-nexus-bg text-nexus-navy text-xs pl-8 pr-3 py-2 rounded-lg border border-nexus-border focus:border-nexus-primary focus:bg-white focus:outline-none"
             />
           </div>
 
@@ -87,7 +87,7 @@ export const AuditTrailView: React.FC = () => {
       {/* Audit Log Table */}
       <div className="bg-white border border-nexus-border rounded-2xl shadow-nexus-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-nexus-bg border-b border-nexus-border font-semibold text-nexus-navy-muted">
               <tr>
                 <th className="px-4 py-3">Timestamp</th>

@@ -6,9 +6,8 @@ import {
   BarChart3,
   ShieldCheck,
   Settings2,
-  Clock,
-  Layers,
-  Sparkles
+  Sparkles,
+  X
 } from 'lucide-react';
 import { useDemo } from '../context/DemoContext';
 
@@ -17,13 +16,17 @@ interface SidebarProps {
   setCurrentTab: (tab: string) => void;
   caseCount?: number;
   overdueCount?: number;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   setCurrentTab,
   caseCount = 20,
-  overdueCount = 6
+  overdueCount = 6,
+  isMobileOpen = false,
+  onCloseMobile
 }) => {
   const { currentUser } = useDemo();
 
@@ -69,12 +72,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   ];
 
-  return (
-    <aside className="w-64 bg-nexus-card border-r border-nexus-border flex flex-col justify-between shrink-0 h-[calc(100vh-6rem)] sticky top-24">
+  const handleSelectTab = (tabId: string) => {
+    setCurrentTab(tabId);
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
+
+  const navContent = (
+    <div className="flex flex-col justify-between h-full">
       {/* Navigation Links */}
       <div className="p-3 space-y-1">
-        <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-nexus-navy-muted">
-          Operations Rail
+        <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-nexus-navy-muted flex items-center justify-between">
+          <span>Operations Rail</span>
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="lg:hidden p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {navItems.map(item => {
@@ -83,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           return (
             <button
               key={item.id}
-              onClick={() => setCurrentTab(item.id)}
+              onClick={() => handleSelectTab(item.id)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition group ${
                 isActive
                   ? 'bg-nexus-primary text-white font-medium shadow-sm shadow-nexus-primary/20'
@@ -122,6 +140,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sticky Sidebar (Visible on lg+) */}
+      <aside className="hidden lg:flex w-64 bg-nexus-card border-r border-nexus-border flex-col justify-between shrink-0 h-[calc(100vh-6rem)] sticky top-24 rounded-2xl shadow-nexus-card overflow-hidden">
+        {navContent}
+      </aside>
+
+      {/* Mobile Slide-in Drawer (Visible on < lg when isMobileOpen) */}
+      {isMobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            onClick={onCloseMobile}
+            className="fixed inset-0 bg-nexus-navy/50 backdrop-blur-sm transition-opacity duration-200"
+          />
+
+          {/* Drawer content */}
+          <div className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
+            {navContent}
+          </div>
+        </div>
+      )}
+    </>
   );
 };

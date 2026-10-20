@@ -45,11 +45,11 @@ export const ReportsView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="bg-white border border-nexus-border rounded-2xl p-6 shadow-nexus-card flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-nexus-border rounded-2xl p-4 sm:p-6 shadow-nexus-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-bold text-nexus-navy">Reports & SLA Compliance Analytics</h1>
-            <span className="text-[11px] font-semibold bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full">
+            <h1 className="text-lg sm:text-xl font-bold text-nexus-navy">Reports & SLA Compliance Analytics</h1>
+            <span className="text-[10px] sm:text-[11px] font-semibold bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full">
               Leadership & Auditor Scope
             </span>
           </div>
@@ -60,7 +60,7 @@ export const ReportsView: React.FC = () => {
 
         <button
           onClick={handleExportCsv}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-nexus-primary hover:bg-nexus-primary-hover text-white text-xs font-semibold shadow-sm transition active:scale-[0.98]"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-nexus-primary hover:bg-nexus-primary-hover text-white text-xs font-semibold shadow-sm transition active:scale-[0.98] self-start md:self-auto"
         >
           <Download className="w-4 h-4" />
           <span>Export Compliance CSV</span>
@@ -82,7 +82,7 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* Bureau Performance Table */}
-      <div className="bg-white border border-nexus-border rounded-2xl p-6 shadow-nexus-card">
+      <div className="bg-white border border-nexus-border rounded-2xl p-4 sm:p-6 shadow-nexus-card">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-bold text-sm text-nexus-navy">Bureau Performance & Turnaround</h3>
@@ -91,8 +91,8 @@ export const ReportsView: React.FC = () => {
           <Briefcase className="w-4 h-4 text-nexus-navy-light" />
         </div>
 
-        <div className="border border-nexus-border rounded-xl overflow-hidden shadow-nexus-card">
-          <table className="w-full text-left text-xs">
+        <div className="border border-nexus-border rounded-xl overflow-x-auto shadow-nexus-card">
+          <table className="w-full text-left text-xs min-w-[600px]">
             <thead className="bg-nexus-bg border-b border-nexus-border font-semibold text-nexus-navy-muted">
               <tr>
                 <th className="px-4 py-3">Bureau / Cell</th>

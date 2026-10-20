@@ -111,10 +111,10 @@ export const CasesView: React.FC<CasesViewProps> = ({ initialFilter }) => {
   return (
     <div className="space-y-4 pb-12">
       {/* Top Controls Bar */}
-      <div className="bg-white border border-nexus-border rounded-2xl p-5 shadow-nexus-card space-y-4">
+      <div className="bg-white border border-nexus-border rounded-2xl p-4 sm:p-5 shadow-nexus-card space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-nexus-navy">Central Case Coordination Workspace</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-nexus-navy">Central Case Coordination Workspace</h1>
             <p className="text-xs text-nexus-navy-muted">
               Filter, triage, transfer, and update status across AICTE Bureaus & Cells
             </p>
@@ -242,7 +242,7 @@ export const CasesView: React.FC<CasesViewProps> = ({ initialFilter }) => {
       {/* Main Table Container */}
       <div className="bg-white border border-nexus-border rounded-2xl shadow-nexus-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[850px]">
             <thead className="bg-nexus-bg border-b border-nexus-border font-semibold text-nexus-navy-muted">
               <tr>
                 <th
@@ -417,7 +417,7 @@ export const CasesView: React.FC<CasesViewProps> = ({ initialFilter }) => {
         </div>
 
         {/* Pagination Footer */}
-        <div className="px-6 py-3 bg-nexus-bg border-t border-nexus-border flex items-center justify-between text-xs text-nexus-navy-muted">
+        <div className="px-4 sm:px-6 py-3 bg-nexus-bg border-t border-nexus-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-nexus-navy-muted">
           <div>
             Showing <strong className="text-nexus-navy">{cases.length}</strong> of{' '}
             <strong className="text-nexus-navy">{total}</strong> total cases

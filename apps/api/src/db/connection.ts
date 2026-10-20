@@ -2,12 +2,19 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const DB_DIR = path.resolve(process.cwd(), 'data');
+// Resolve database directory in apps/api/data or root data
+const candidateDirs = [
+  process.env.DATA_DIR,
+  path.resolve(process.cwd(), 'data'),
+  path.resolve(process.cwd(), 'apps/api/data')
+].filter(Boolean) as string[];
+
+const DB_DIR = candidateDirs.find(d => fs.existsSync(d)) || candidateDirs[0];
 if (!fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR, { recursive: true });
 }
 
-const DB_PATH = path.join(DB_DIR, 'nexus0.db');
+const DB_PATH = process.env.DB_PATH || path.join(DB_DIR, 'nexus0.db');
 
 export const db: InstanceType<typeof Database> = new Database(DB_PATH);
 

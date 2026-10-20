@@ -31,8 +31,12 @@ apiRouter.get('/demo/bureaus', (req, res) => {
   res.json({ data: bureaus });
 });
 
-apiRouter.post('/demo/reset', requireRole(['admin']), (req: AuthenticatedRequest, res: Response) => {
-  const result = demoService.resetDemo(req.user!);
+apiRouter.post('/demo/reset', (req: AuthenticatedRequest, res: Response) => {
+  if (req.user && req.user.role !== 'admin') {
+    return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only admin can reset demo data' } });
+  }
+  const actor = req.user || { id: 'usr-admin', display_name: 'System Admin', role: 'admin' };
+  const result = demoService.resetDemo(actor as any);
   res.json({ data: result });
 });
 

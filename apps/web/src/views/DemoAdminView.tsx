@@ -177,14 +177,14 @@ export const DemoAdminView: React.FC = () => {
       </div>
 
       {/* RBAC Matrix */}
-      <div className="bg-white border border-nexus-border rounded-2xl p-6 shadow-nexus-card">
+      <div className="bg-white border border-nexus-border rounded-2xl p-4 sm:p-6 shadow-nexus-card">
         <h3 className="font-bold text-sm text-nexus-navy mb-1">Role-Based Access Control (RBAC) Specification</h3>
         <p className="text-xs text-nexus-navy-muted mb-4">
           Restrictions are verified and enforced by the Express backend API on every mutation request (HTTP 403 Forbidden).
         </p>
 
-        <div className="border border-nexus-border rounded-xl overflow-hidden shadow-nexus-card">
-          <table className="w-full text-left text-xs">
+        <div className="border border-nexus-border rounded-xl overflow-x-auto shadow-nexus-card">
+          <table className="w-full text-left text-xs min-w-[650px]">
             <thead className="bg-nexus-bg border-b border-nexus-border font-semibold text-nexus-navy-muted">
               <tr>
                 <th className="px-4 py-3">Operation / Capability</th>

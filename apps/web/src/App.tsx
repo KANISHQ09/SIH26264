@@ -17,6 +17,7 @@ import { DemoAdminView } from './views/DemoAdminView';
 const MainLayout: React.FC = () => {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [casesFilter, setCasesFilter] = useState<any>(undefined);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { activeCaseId, setActiveCaseId, activeInstitutionId, setActiveInstitutionId } = useDemo();
 
@@ -32,10 +33,14 @@ const MainLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-nexus-bg text-nexus-navy flex flex-col font-sans">
       {/* Top Navigation & Role Bar */}
-      <Header currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      <Header
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
+      />
 
       {/* Main Workspace Body */}
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
+      <div className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
         {/* Left Operations Rail */}
         <Sidebar
           currentTab={currentTab}
@@ -43,6 +48,8 @@ const MainLayout: React.FC = () => {
             if (tab === 'cases') setCasesFilter(undefined);
             setCurrentTab(tab);
           }}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Dynamic View Canvas */}

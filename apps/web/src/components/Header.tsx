@@ -9,7 +9,8 @@ import {
   AlertTriangle,
   RotateCcw,
   ShieldAlert,
-  Briefcase
+  Briefcase,
+  Menu
 } from 'lucide-react';
 import { useDemo } from '../context/DemoContext';
 import { api } from '../services/api';
@@ -18,9 +19,10 @@ import { Institution, Case } from '../types';
 interface HeaderProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
+  onToggleMobileMenu?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => {
+export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onToggleMobileMenu }) => {
   const {
     currentUser,
     users,
@@ -90,19 +92,14 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
   }, [searchQuery]);
 
   const handleResetData = async () => {
-    if (currentUser?.role !== 'admin') {
-      showToast('Only System Administrator can reset demo data', 'error');
-      return;
-    }
-
-    if (!window.confirm('Reset demo dataset to pristine initial seed? All mutations will be re-seeded.')) {
+    if (!window.confirm('Reset/seed demo dataset with 8 institutions and 20 sample cases?')) {
       return;
     }
 
     try {
       setIsResetting(true);
       await api.resetDemoData();
-      showToast('Demo dataset successfully restored to original seed state!', 'success');
+      showToast('Demo dataset successfully populated and restored to seed state!', 'success');
       triggerRefresh();
     } catch (err: any) {
       showToast(err.message || 'Failed to reset demo data', 'error');
@@ -118,67 +115,78 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
   return (
     <header className="sticky top-0 z-30 bg-nexus-card border-b border-nexus-border shadow-sm">
       {/* Top Demo Disclaimer Banner */}
-      <div className="bg-gradient-to-r from-nexus-navy to-slate-900 text-white text-xs px-4 py-1.5 flex items-center justify-between font-medium">
-        <div className="flex items-center gap-2">
-          <span className="bg-nexus-danger/90 text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded">
+      <div className="bg-gradient-to-r from-nexus-navy to-slate-900 text-white text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2 font-medium">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="bg-nexus-danger/90 text-white text-[9px] sm:text-[10px] font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded shrink-0">
             DEMO ENVIRONMENT
           </span>
-          <span className="text-slate-300 hidden sm:inline">
+          <span className="text-slate-300 hidden md:inline truncate">
             Sample data only · Non-production simulation for Smart Automation (SIH PS 26264)
           </span>
         </div>
-        <div className="flex items-center gap-3 text-slate-300 text-[11px]">
-          <span>AICTE Regulation Bureau</span>
-          <span className="text-slate-500">•</span>
-          <span className="font-mono text-slate-400">Fixed Demo Clock: Oct 2026</span>
-          {currentUser?.role === 'admin' && (
-            <button
-              onClick={handleResetData}
-              disabled={isResetting}
-              className="flex items-center gap-1 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded transition text-[11px]"
-              title="Restore original seed data"
-            >
-              <RotateCcw className={`w-3 h-3 ${isResetting ? 'animate-spin' : ''}`} />
-              <span>{isResetting ? 'Resetting...' : 'Reset Data'}</span>
-            </button>
-          )}
+        <div className="flex items-center gap-2 sm:gap-3 text-slate-300 text-[10px] sm:text-[11px] shrink-0">
+          <span className="hidden lg:inline">AICTE Regulation Bureau</span>
+          <span className="text-slate-500 hidden lg:inline">•</span>
+          <span className="font-mono text-slate-400 hidden sm:inline">Demo Clock: Oct 2026</span>
+          <button
+            onClick={handleResetData}
+            disabled={isResetting}
+            className="flex items-center gap-1 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded transition text-[10px] sm:text-[11px]"
+            title="Populate or restore original seed data"
+          >
+            <RotateCcw className={`w-3 h-3 ${isResetting ? 'animate-spin' : ''}`} />
+            <span>{isResetting ? 'Seeding...' : 'Reset / Seed Data'}</span>
+          </button>
         </div>
       </div>
 
       {/* Main Header Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Brand Logo & Name */}
-        <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => setCurrentTab('dashboard')}>
-          <div className="w-10 h-10 rounded-lg bg-nexus-primary flex items-center justify-center text-white shadow-md shadow-nexus-primary/25">
-            <span className="font-bold text-lg tracking-tight">N0</span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-lg text-nexus-navy tracking-tight">Nexus 0</span>
-              <span className="text-xs bg-nexus-primary-subtle text-nexus-primary font-semibold px-2 py-0.5 rounded-full border border-nexus-primary-border">
-                AICTE OneView
-              </span>
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+        {/* Mobile Hamburger & Brand Logo */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {onToggleMobileMenu && (
+            <button
+              type="button"
+              onClick={onToggleMobileMenu}
+              className="lg:hidden p-1.5 rounded-lg text-nexus-navy hover:bg-nexus-bg transition"
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5 text-nexus-navy" />
+            </button>
+          )}
+
+          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none" onClick={() => setCurrentTab('dashboard')}>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-nexus-primary flex items-center justify-center text-white shadow-md shadow-nexus-primary/25 shrink-0">
+              <span className="font-bold text-base sm:text-lg tracking-tight">N0</span>
             </div>
-            <p className="text-[11px] text-nexus-navy-muted leading-tight">
-              Consolidated Institution Oversight & Grievance Coordination
-            </p>
+            <div>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="font-bold text-base sm:text-lg text-nexus-navy tracking-tight">Nexus 0</span>
+                <span className="text-[10px] sm:text-xs bg-nexus-primary-subtle text-nexus-primary font-semibold px-1.5 sm:px-2 py-0.5 rounded-full border border-nexus-primary-border">
+                  AICTE OneView
+                </span>
+              </div>
+              <p className="text-[11px] text-nexus-navy-muted leading-tight hidden lg:block">
+                Consolidated Institution Oversight & Grievance Coordination
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Global Institution & Case Search */}
-        <div className="flex-1 max-w-lg relative" ref={searchRef}>
+        <div className="flex-1 max-w-xs sm:max-w-md lg:max-w-lg relative" ref={searchRef}>
           <div className="relative">
-            <Search className="w-4 h-4 text-nexus-navy-light absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-nexus-navy-light absolute left-2.5 sm:left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onFocus={() => { if (searchResults.institutions.length || searchResults.cases.length) setIsSearchOpen(true); }}
-              placeholder="Search institutions (name/code) or cases (ID/subject)..."
-              className="w-full bg-nexus-bg text-nexus-navy placeholder-nexus-navy-light text-sm pl-9 pr-4 py-2 rounded-lg border border-nexus-border focus:border-nexus-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-nexus-primary/20 transition"
+              placeholder="Search institutions or cases..."
+              className="w-full bg-nexus-bg text-nexus-navy placeholder-nexus-navy-light text-xs sm:text-sm pl-7 sm:pl-9 pr-3 sm:pr-4 py-1.5 sm:py-2 rounded-lg border border-nexus-border focus:border-nexus-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-nexus-primary/20 transition"
             />
             {isSearching && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-nexus-primary border-t-transparent rounded-full animate-spin" />
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-nexus-primary border-t-transparent rounded-full animate-spin" />
             )}
           </div>
 

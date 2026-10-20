@@ -71,11 +71,11 @@ export const NewCaseModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-nexus-navy/40 backdrop-blur-sm animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-nexus-navy/40 backdrop-blur-sm animate-in fade-in duration-150">
       <div className="bg-white border border-nexus-border rounded-2xl shadow-nexus-elevated w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-150">
-        <div className="px-6 py-4 border-b border-nexus-border flex items-center justify-between bg-nexus-bg">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-nexus-border flex items-center justify-between bg-nexus-bg">
           <div>
-            <h3 className="font-bold text-base text-nexus-navy">Log New Institution Grievance / Case</h3>
+            <h3 className="font-bold text-sm sm:text-base text-nexus-navy">Log New Institution Grievance / Case</h3>
             <p className="text-xs text-nexus-navy-muted">Enter case details to initiate coordinated workflow tracking</p>
           </div>
           <button
@@ -86,7 +86,7 @@ export const NewCaseModal: React.FC = () => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 max-h-[85vh] sm:max-h-[80vh] overflow-y-auto">
           {/* Institution */}
           <div>
             <label className="block text-xs font-semibold text-nexus-navy mb-1">
@@ -208,18 +208,18 @@ export const NewCaseModal: React.FC = () => {
           </div>
 
           {/* Action buttons */}
-          <div className="pt-2 flex items-center justify-end gap-3 border-t border-nexus-border">
+          <div className="pt-3 flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2 sm:gap-3 border-t border-nexus-border">
             <button
               type="button"
               onClick={() => setIsNewCaseModalOpen(false)}
-              className="px-4 py-2 rounded-lg border border-nexus-border text-nexus-navy-muted hover:bg-slate-50 text-xs font-semibold"
+              className="px-4 py-2.5 sm:py-2 rounded-lg border border-nexus-border text-nexus-navy-muted hover:bg-slate-50 text-xs font-semibold text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg bg-nexus-primary hover:bg-nexus-primary-hover text-white text-xs font-semibold shadow-sm transition disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 sm:py-2 rounded-lg bg-nexus-primary hover:bg-nexus-primary-hover text-white text-xs font-semibold shadow-sm transition disabled:opacity-50"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{isSubmitting ? 'Logging...' : 'Create Case Record'}</span>

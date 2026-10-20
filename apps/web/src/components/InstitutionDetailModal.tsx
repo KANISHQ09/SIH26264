@@ -62,26 +62,26 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-6 bg-nexus-navy/40 backdrop-blur-sm animate-in fade-in duration-150 cursor-pointer"
+      className="fixed inset-0 z-40 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-nexus-navy/40 backdrop-blur-sm animate-in fade-in duration-150 cursor-pointer"
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-white border border-nexus-border rounded-2xl shadow-nexus-elevated w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 cursor-default"
+        className="bg-white border border-nexus-border rounded-2xl shadow-nexus-elevated w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 cursor-default"
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-nexus-border flex items-center justify-between bg-nexus-bg shrink-0">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-nexus-border flex items-center justify-between bg-nexus-bg shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-nexus-primary-subtle text-nexus-primary flex items-center justify-center font-bold">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-nexus-primary-subtle text-nexus-primary flex items-center justify-center font-bold shrink-0">
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-base text-nexus-navy">{institution?.name || 'Loading...'}</h3>
-                <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-nexus-navy">{institution?.name || 'Loading...'}</h3>
+                <span className="text-[10px] sm:text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
                   AICTE Approved
                 </span>
               </div>
-              <div className="text-xs text-nexus-navy-muted flex items-center gap-2 mt-0.5 font-mono">
+              <div className="text-[11px] sm:text-xs text-nexus-navy-muted flex flex-wrap items-center gap-1.5 sm:gap-2 mt-0.5 font-mono">
                 <span>Code: {institution?.institution_code}</span>
                 <span>•</span>
                 <span className="flex items-center gap-1 font-sans">
@@ -103,8 +103,8 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
         </div>
 
         {/* Multi-Bureau Summary Bar */}
-        <div className="px-6 py-3.5 bg-slate-50 border-b border-nexus-border shrink-0 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-6 text-xs">
+        <div className="px-4 sm:px-6 py-3 sm:py-3.5 bg-slate-50 border-b border-nexus-border shrink-0 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs">
             <div>
               <span className="text-nexus-navy-muted">Consolidated Cases: </span>
               <strong className="text-nexus-navy text-sm">{cases.length}</strong>
@@ -123,13 +123,13 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
             </div>
           </div>
 
-          <div className="text-xs text-slate-500 italic">
+          <div className="text-[11px] text-slate-500 italic hidden sm:block">
             *One institution. One consolidated case view across all AICTE Bureaus & Cells.*
           </div>
         </div>
 
         {/* Scrollable Cases Table */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {isLoading ? (
             <div className="py-16 text-center">
               <div className="w-8 h-8 border-2 border-nexus-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
