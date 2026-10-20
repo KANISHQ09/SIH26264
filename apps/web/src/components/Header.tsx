@@ -7,7 +7,6 @@ import {
   FileText,
   Plus,
   AlertTriangle,
-  RotateCcw,
   ShieldAlert,
   Briefcase,
   Menu
@@ -42,7 +41,6 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onTog
   const [isSearching, setIsSearching] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isPersonaOpen, setIsPersonaOpen] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
   const personaRef = useRef<HTMLDivElement>(null);
@@ -91,54 +89,12 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onTog
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleResetData = async () => {
-    if (!window.confirm('Reset/seed demo dataset with 8 institutions and 20 sample cases?')) {
-      return;
-    }
-
-    try {
-      setIsResetting(true);
-      await api.resetDemoData();
-      showToast('Demo dataset successfully populated and restored to seed state!', 'success');
-      triggerRefresh();
-    } catch (err: any) {
-      showToast(err.message || 'Failed to reset demo data', 'error');
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
   const canCreateCase = currentUser?.role === 'leadership' ||
     currentUser?.role === 'bureau_official' ||
     currentUser?.role === 'admin';
 
   return (
     <header className="sticky top-0 z-30 bg-nexus-card border-b border-nexus-border shadow-sm">
-      {/* Top Demo Disclaimer Banner */}
-      <div className="bg-gradient-to-r from-nexus-navy to-slate-900 text-white text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2 font-medium">
-        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-          <span className="bg-nexus-danger/90 text-white text-[9px] sm:text-[10px] font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded shrink-0">
-            DEMO ENVIRONMENT
-          </span>
-          <span className="text-slate-300 hidden md:inline truncate">
-            Sample data only · Non-production simulation for Smart Automation (SIH PS 26264)
-          </span>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3 text-slate-300 text-[10px] sm:text-[11px] shrink-0">
-          <span className="hidden lg:inline">AICTE Regulation Bureau</span>
-          <span className="text-slate-500 hidden lg:inline">•</span>
-          <span className="font-mono text-slate-400 hidden sm:inline">Demo Clock: Oct 2026</span>
-          <button
-            onClick={handleResetData}
-            disabled={isResetting}
-            className="flex items-center gap-1 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded transition text-[10px] sm:text-[11px]"
-            title="Populate or restore original seed data"
-          >
-            <RotateCcw className={`w-3 h-3 ${isResetting ? 'animate-spin' : ''}`} />
-            <span>{isResetting ? 'Seeding...' : 'Reset / Seed Data'}</span>
-          </button>
-        </div>
-      </div>
 
       {/* Main Header Bar */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
