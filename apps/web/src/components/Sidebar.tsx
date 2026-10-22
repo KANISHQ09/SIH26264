@@ -6,7 +6,6 @@ import {
   BarChart3,
   ShieldCheck,
   Settings2,
-  Globe,
   GraduationCap,
   FileCheck,
   X
@@ -158,21 +157,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Public Landing Page link */}
-        <button
-          onClick={() => handleSelectTab('landing')}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition group mb-2 border ${
-            currentTab === 'landing'
-              ? 'bg-nexus-primary text-white font-medium border-nexus-primary shadow-xs'
-              : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-          }`}
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Globe className={`w-4 h-4 shrink-0 ${currentTab === 'landing' ? 'text-white' : 'text-nexus-primary'}`} />
-            <span className="text-xs font-semibold">Public Landing Page</span>
-          </div>
-          <span className="text-[10px] text-slate-400 font-mono">Home</span>
-        </button>
 
         {navItems.map(item => {
           const Icon = item.icon;
@@ -203,23 +187,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </div>
 
-      {/* Role Context & Regulatory Badge at Bottom */}
-      <div className="p-3 border-t border-nexus-border bg-slate-50/60">
-        <div className="p-2.5 rounded-lg border border-nexus-border bg-white space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="text-[11px] font-bold text-nexus-navy uppercase tracking-wider truncate">
-              SIH 2026 PS 26264
-            </span>
-          </div>
-          <div className="text-[11px] text-nexus-navy-muted leading-tight">
-            AICTE Regulation Bureau & PGRC Monitoring Prototype
-          </div>
-          <div className="text-[10px] font-mono text-slate-500 bg-nexus-bg p-1 rounded border border-nexus-border">
-            Status: Deterministic Seed Active
-          </div>
-        </div>
-      </div>
+
     </div>
   );
 

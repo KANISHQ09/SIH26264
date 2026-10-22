@@ -1,20 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Search,
   UserCheck,
   ChevronDown,
-  Building2,
-  FileText,
   Plus,
   AlertTriangle,
   ShieldAlert,
   Briefcase,
-  Menu,
-  Globe
+  Menu
 } from 'lucide-react';
 import { useDemo } from '../context/DemoContext';
-import { api } from '../services/api';
-import { Institution, Case } from '../types';
+import { NexusLogo } from './NexusLogo';
 
 interface HeaderProps {
   currentTab: string;
@@ -27,32 +22,16 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onTog
     currentUser,
     users,
     setCurrentUser,
-    setActiveCaseId,
-    setActiveInstitutionId,
     setIsNewCaseModalOpen,
-    setIsSignInModalOpen,
-    showToast,
-    triggerRefresh
+    setIsSignInModalOpen
   } = useDemo();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<{ institutions: Institution[]; cases: Case[] }>({
-    institutions: [],
-    cases: []
-  });
-  const [isSearching, setIsSearching] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isPersonaOpen, setIsPersonaOpen] = useState(false);
-
-  const searchRef = useRef<HTMLDivElement>(null);
   const personaRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearchOpen(false);
-      }
       if (personaRef.current && !personaRef.current.contains(event.target as Node)) {
         setIsPersonaOpen(false);
       }
@@ -60,36 +39,6 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onTog
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Global search autocomplete
-  useEffect(() => {
-    if (!searchQuery.trim() || searchQuery.length < 2) {
-      setSearchResults({ institutions: [], cases: [] });
-      setIsSearching(false);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const [instRes, casesRes] = await Promise.all([
-          api.getInstitutions(searchQuery),
-          api.getCases({ q: searchQuery, pageSize: 5 })
-        ]);
-        setSearchResults({
-          institutions: instRes.data.slice(0, 4),
-          cases: casesRes.data.slice(0, 5)
-        });
-        setIsSearchOpen(true);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 250);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   const canCreateCase = currentUser?.role === 'leadership' ||
     currentUser?.role === 'bureau_official' ||
@@ -113,123 +62,21 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onTog
             </button>
           )}
 
-          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none" onClick={() => setCurrentTab('dashboard')}>
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-nexus-primary flex items-center justify-center text-white shadow-md shadow-nexus-primary/25 shrink-0">
-              <span className="font-bold text-base sm:text-lg tracking-tight">N0</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="font-bold text-base sm:text-lg text-nexus-navy tracking-tight">Nexus 0</span>
-                <span className="text-[10px] sm:text-xs bg-nexus-primary-subtle text-nexus-primary font-semibold px-1.5 sm:px-2 py-0.5 rounded-full border border-nexus-primary-border">
-                  AICTE OneView
-                </span>
-              </div>
-              <p className="text-[11px] text-nexus-navy-muted leading-tight hidden lg:block">
-                Consolidated Institution Oversight & Grievance Coordination
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Global Institution & Case Search */}
-        <div className="flex-1 max-w-xs sm:max-w-md lg:max-w-lg relative" ref={searchRef}>
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-nexus-navy-light absolute left-2.5 sm:left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onFocus={() => { if (searchResults.institutions.length || searchResults.cases.length) setIsSearchOpen(true); }}
-              placeholder="Search institutions or cases..."
-              className="w-full bg-nexus-bg text-nexus-navy placeholder-nexus-navy-light text-xs sm:text-sm pl-7 sm:pl-9 pr-3 sm:pr-4 py-1.5 sm:py-2 rounded-lg border border-nexus-border focus:border-nexus-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-nexus-primary/20 transition"
+          <div
+            className="cursor-pointer select-none hover:opacity-90 transition-opacity"
+            onClick={() => setCurrentTab('landing')}
+            title="Return to Public Landing Page"
+          >
+            <NexusLogo
+              variant="light"
+              size="sm"
+              subtitle="Consolidated Institution Oversight & Grievance Coordination"
             />
-            {isSearching && (
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-nexus-primary border-t-transparent rounded-full animate-spin" />
-            )}
           </div>
-
-          {/* Autocomplete Dropdown */}
-          {isSearchOpen && (searchResults.institutions.length > 0 || searchResults.cases.length > 0) && (
-            <div className="absolute left-0 right-0 mt-2 bg-nexus-card border border-nexus-border rounded-xl shadow-nexus-dropdown overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-              {searchResults.institutions.length > 0 && (
-                <div className="p-2 border-b border-nexus-border">
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-nexus-navy-muted px-2 py-1 flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-nexus-primary" />
-                    <span>Institutions (OneView Profiles)</span>
-                  </div>
-                  {searchResults.institutions.map(inst => (
-                    <div
-                      key={inst.id}
-                      onClick={() => {
-                        setActiveInstitutionId(inst.id);
-                        setIsSearchOpen(false);
-                        setSearchQuery('');
-                      }}
-                      className="px-2.5 py-2 hover:bg-nexus-bg rounded-lg cursor-pointer transition flex items-center justify-between"
-                    >
-                      <div>
-                        <div className="text-sm font-medium text-nexus-navy">{inst.name}</div>
-                        <div className="text-xs text-nexus-navy-muted font-mono">{inst.institution_code} • {inst.city}, {inst.state}</div>
-                      </div>
-                      <span className="text-[11px] font-medium bg-nexus-primary-subtle text-nexus-primary px-2 py-0.5 rounded-full">
-                        {inst.case_count || 0} linked cases
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {searchResults.cases.length > 0 && (
-                <div className="p-2">
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-nexus-navy-muted px-2 py-1 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-nexus-primary" />
-                    <span>Cases & Grievances</span>
-                  </div>
-                  {searchResults.cases.map(c => (
-                    <div
-                      key={c.id}
-                      onClick={() => {
-                        setActiveCaseId(c.id);
-                        setIsSearchOpen(false);
-                        setSearchQuery('');
-                      }}
-                      className="px-2.5 py-2 hover:bg-nexus-bg rounded-lg cursor-pointer transition flex items-center justify-between"
-                    >
-                      <div className="truncate mr-3">
-                        <div className="text-sm font-medium text-nexus-navy flex items-center gap-2">
-                          <span className="font-mono text-nexus-primary font-semibold">{c.case_number}</span>
-                          <span className="text-xs text-nexus-navy-muted truncate">{c.summary}</span>
-                        </div>
-                        <div className="text-xs text-nexus-navy-light">{c.institution_name} • {c.category}</div>
-                      </div>
-                      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                        c.status === 'Resolved' || c.status === 'Closed'
-                          ? 'bg-nexus-success-light text-nexus-success-text'
-                          : c.is_overdue
-                          ? 'bg-nexus-danger-light text-nexus-danger-text'
-                          : 'bg-nexus-warning-light text-nexus-warning-text'
-                      }`}>
-                        {c.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Action Controls & Persona Switcher */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Public Landing Page Toggle */}
-          <button
-            onClick={() => setCurrentTab('landing')}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-nexus-navy bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl border border-slate-200 transition shadow-xs"
-            title="Switch to Stripe-style Public Landing Page"
-          >
-            <Globe className="w-3.5 h-3.5 text-nexus-primary" />
-            <span className="hidden sm:inline">Public Site</span>
-          </button>
+        <div className="flex items-center gap-2 sm:gap-3 ml-auto">
 
           {canCreateCase && (
             <button

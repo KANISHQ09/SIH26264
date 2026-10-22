@@ -117,10 +117,7 @@ export const SignInModal: React.FC<SignInModalProps> = ({
         <div className="px-6 py-4 border-b border-nexus-border flex items-center justify-between bg-nexus-bg shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold tracking-wider uppercase bg-nexus-primary/10 text-nexus-primary px-2 py-0.5 rounded">
-                SIH 2026 PS 26264
-              </span>
-              <span className="text-xs text-slate-500 font-mono">• 8 Verified Demo Personas</span>
+              <span className="text-xs text-slate-500 font-mono">8 Verified Governance Personas</span>
             </div>
             <h3 className="text-base font-bold text-nexus-navy mt-0.5">
               Select Governance Persona / Sign In

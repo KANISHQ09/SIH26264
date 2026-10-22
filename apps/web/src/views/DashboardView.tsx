@@ -68,9 +68,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-lg sm:text-xl font-bold text-nexus-navy">Central Coordination Console</h1>
-            <span className="text-[10px] sm:text-[11px] font-semibold bg-nexus-primary-subtle text-nexus-primary px-2.5 py-0.5 rounded-full border border-nexus-primary-border">
-              SIH 2026 · PS 26264
-            </span>
           </div>
           <p className="text-xs text-nexus-navy-muted leading-relaxed max-w-2xl">
             Real-time multi-bureau visibility across AICTE institutions. One consolidated view for approvals, academic policies, faculty welfare, student grievances, and vigilance.

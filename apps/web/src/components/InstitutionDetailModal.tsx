@@ -209,7 +209,7 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
 
         {/* Scrollable Content Canvas */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
-          {/* SIH PS 26264 MANDATED OVERLAP ALERT BANNER (Demo Step 2) */}
+          {/* MANDATED OVERLAP ALERT BANNER (Inter-Bureau Lock) */}
           {overlap?.has_overlap && (
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 border-l-4 border-l-amber-600 p-4 rounded-xl shadow-sm">
               <div className="flex items-start gap-3">
