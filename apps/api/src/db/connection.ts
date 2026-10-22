@@ -44,9 +44,11 @@ export function initSchema() {
     CREATE TABLE IF NOT EXISTS institutions (
       id TEXT PRIMARY KEY,
       institution_code TEXT NOT NULL UNIQUE,
+      aicte_permanent_id TEXT NOT NULL DEFAULT '',
       name TEXT NOT NULL,
       city TEXT NOT NULL,
       state TEXT NOT NULL,
+      region TEXT NOT NULL DEFAULT 'WRO',
       institution_type TEXT NOT NULL,
       source_reference TEXT,
       updated_at TEXT NOT NULL
@@ -60,9 +62,13 @@ export function initSchema() {
       category TEXT NOT NULL,
       priority TEXT NOT NULL DEFAULT 'Medium',
       summary TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'Open',
+      status TEXT NOT NULL DEFAULT 'Pending',
+      escalation_level INTEGER NOT NULL DEFAULT 1,
       current_bureau_id TEXT NOT NULL REFERENCES bureaus(id) ON DELETE RESTRICT,
       current_owner_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      complainant_name TEXT,
+      complainant_email TEXT,
+      is_anonymous INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       due_at TEXT,
@@ -111,6 +117,18 @@ export function initSchema() {
       UNIQUE(case_id, candidate_case_id)
     );
 
+    CREATE TABLE IF NOT EXISTS action_taken_reports (
+      id TEXT PRIMARY KEY,
+      case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+      institution_id TEXT NOT NULL REFERENCES institutions(id) ON DELETE CASCADE,
+      submitted_by_name TEXT NOT NULL,
+      submitted_by_role TEXT NOT NULL DEFAULT 'institution',
+      submission_text TEXT NOT NULL,
+      action_taken_date TEXT NOT NULL,
+      evidence_files TEXT,
+      created_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS audit_events (
       id TEXT PRIMARY KEY,
       actor_id TEXT NOT NULL,
@@ -124,6 +142,25 @@ export function initSchema() {
       metadata TEXT
     );
 
+  `);
+
+  // Safe runtime column migrations in case database already exists
+  const safeAlter = (sql: string) => {
+    try {
+      db.exec(sql);
+    } catch {
+      // Column or table already updated
+    }
+  };
+
+  safeAlter(`ALTER TABLE institutions ADD COLUMN aicte_permanent_id TEXT NOT NULL DEFAULT ''`);
+  safeAlter(`ALTER TABLE institutions ADD COLUMN region TEXT NOT NULL DEFAULT 'WRO'`);
+  safeAlter(`ALTER TABLE cases ADD COLUMN complainant_name TEXT`);
+  safeAlter(`ALTER TABLE cases ADD COLUMN complainant_email TEXT`);
+  safeAlter(`ALTER TABLE cases ADD COLUMN is_anonymous INTEGER NOT NULL DEFAULT 0`);
+  safeAlter(`ALTER TABLE cases ADD COLUMN escalation_level INTEGER NOT NULL DEFAULT 1`);
+
+  db.exec(`
     CREATE INDEX IF NOT EXISTS idx_cases_case_number ON cases(case_number);
     CREATE INDEX IF NOT EXISTS idx_cases_institution ON cases(institution_id);
     CREATE INDEX IF NOT EXISTS idx_cases_status ON cases(status);
@@ -131,7 +168,9 @@ export function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_cases_owner ON cases(current_owner_id);
     CREATE INDEX IF NOT EXISTS idx_cases_due_at ON cases(due_at);
     CREATE INDEX IF NOT EXISTS idx_institutions_code ON institutions(institution_code);
+    CREATE INDEX IF NOT EXISTS idx_institutions_perm_id ON institutions(aicte_permanent_id);
     CREATE INDEX IF NOT EXISTS idx_assignments_case ON assignments(case_id);
     CREATE INDEX IF NOT EXISTS idx_case_events_case ON case_events(case_id);
+    CREATE INDEX IF NOT EXISTS idx_atr_case ON action_taken_reports(case_id);
   `);
 }

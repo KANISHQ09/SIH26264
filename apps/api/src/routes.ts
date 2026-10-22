@@ -66,6 +66,16 @@ apiRouter.get('/institutions/:id/cases', (req: AuthenticatedRequest, res: Respon
   res.json({ data: cases });
 });
 
+apiRouter.get('/institutions/:id/overlap', (req: AuthenticatedRequest, res: Response) => {
+  const overlap = institutionsService.getOverlapStatus(req.params.id);
+  res.json({ data: overlap });
+});
+
+apiRouter.get('/institutions/:id/risk-score', (req: AuthenticatedRequest, res: Response) => {
+  const riskScore = institutionsService.getRiskScore(req.params.id);
+  res.json({ data: riskScore });
+});
+
 // Cases
 apiRouter.get('/cases', (req: AuthenticatedRequest, res: Response) => {
   const {
@@ -116,13 +126,31 @@ apiRouter.get('/cases/:id/timeline', (req: AuthenticatedRequest, res: Response) 
   res.json({ data: timeline });
 });
 
-apiRouter.post('/cases', requireRole(['leadership', 'bureau_official', 'admin']), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post('/cases', requireRole(['leadership', 'bureau_official', 'admin', 'student']), (req: AuthenticatedRequest, res: Response) => {
   try {
     const newCase = casesService.create({
       ...req.body,
       actor: req.user!
     });
     res.status(201).json({ data: newCase });
+  } catch (err: any) {
+    res.status(400).json({ error: { code: 'BAD_REQUEST', message: err.message } });
+  }
+});
+
+// Action Taken Reports (ATR)
+apiRouter.get('/cases/:id/atr', (req: AuthenticatedRequest, res: Response) => {
+  const atrs = casesService.getAtrs(req.params.id);
+  res.json({ data: atrs });
+});
+
+apiRouter.post('/cases/:id/atr', requireRole(['leadership', 'bureau_official', 'case_handler', 'institution', 'admin']), (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const updatedCase = casesService.submitAtr(req.params.id, {
+      ...req.body,
+      actor: req.user!
+    });
+    res.status(201).json({ data: updatedCase });
   } catch (err: any) {
     res.status(400).json({ error: { code: 'BAD_REQUEST', message: err.message } });
   }

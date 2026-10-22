@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, DemoRole } from '../types';
+import { User, DemoRole, Case } from '../types';
 import { api, setApiDemoIdentity } from '../services/api';
 
 interface Toast {
@@ -22,6 +22,12 @@ interface DemoContextType {
   setActiveInstitutionId: (id: string | null) => void;
   isNewCaseModalOpen: boolean;
   setIsNewCaseModalOpen: (open: boolean) => void;
+  isSignInModalOpen: boolean;
+  setIsSignInModalOpen: (open: boolean) => void;
+  isAtrModalOpen: boolean;
+  setIsAtrModalOpen: (open: boolean) => void;
+  atrTargetCase: Case | null;
+  setAtrTargetCase: (targetCase: Case | null) => void;
   refreshKey: number;
   triggerRefresh: () => void;
 }
@@ -35,6 +41,9 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
   const [activeInstitutionId, setActiveInstitutionId] = useState<string | null>(null);
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isAtrModalOpen, setIsAtrModalOpen] = useState(false);
+  const [atrTargetCase, setAtrTargetCase] = useState<Case | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const triggerRefresh = () => setRefreshKey(k => k + 1);
@@ -82,7 +91,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .catch(err => {
         console.error('Failed to load demo personas', err);
       });
-  }, []);
+  }, [refreshKey]);
 
   return (
     <DemoContext.Provider
@@ -100,6 +109,12 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setActiveInstitutionId,
         isNewCaseModalOpen,
         setIsNewCaseModalOpen,
+        isSignInModalOpen,
+        setIsSignInModalOpen,
+        isAtrModalOpen,
+        setIsAtrModalOpen,
+        atrTargetCase,
+        setAtrTargetCase,
         refreshKey,
         triggerRefresh
       }}

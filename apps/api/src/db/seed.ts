@@ -6,6 +6,7 @@ export function runSeed() {
   // Clean existing data
   const tables = [
     'audit_events',
+    'action_taken_reports',
     'related_case_reviews',
     'case_events',
     'assignments',
@@ -20,24 +21,24 @@ export function runSeed() {
       db.prepare(`DELETE FROM ${table}`).run();
     }
 
-    // 1. Bureaus
+    // 1. Bureaus (Specifically highlighting Regulation Bureau and PGRC as mandated by PS 26264)
     const insertBureau = db.prepare(`
       INSERT INTO bureaus (id, name, code, active) VALUES (?, ?, ?, ?)
     `);
 
     const bureaus = [
-      { id: 'bur-approval', name: 'Approval & Affiliation Bureau', code: 'BUR-APP', active: 1 },
+      { id: 'bur-rb', name: 'Regulation Bureau (RB)', code: 'BUR-RB', active: 1 },
+      { id: 'bur-pgrc', name: 'Public Grievance Redressal Cell (PGRC)', code: 'BUR-PGRC', active: 1 },
+      { id: 'bur-approval', name: 'Approval Bureau (AB)', code: 'BUR-APP', active: 1 },
       { id: 'bur-academic', name: 'Policy & Academic Planning Bureau', code: 'BUR-ACAD', active: 1 },
-      { id: 'bur-faculty', name: 'Faculty Development & Welfare Cell', code: 'BUR-FDW', active: 1 },
-      { id: 'bur-vigilance', name: 'Regulation, Redressal & Vigilance Cell', code: 'BUR-VIG', active: 1 },
-      { id: 'bur-grievance', name: 'Student Grievance Redressal Cell', code: 'BUR-SGR', active: 1 }
+      { id: 'bur-faculty', name: 'Faculty Development & Welfare Cell', code: 'BUR-FDW', active: 1 }
     ];
 
     for (const b of bureaus) {
       insertBureau.run(b.id, b.name, b.code, b.active);
     }
 
-    // 2. Demo Users
+    // 2. Exactly 8 Demo Personas
     const insertUser = db.prepare(`
       INSERT INTO users (id, display_name, demo_email, role, designation, bureau_id, active)
       VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -49,17 +50,26 @@ export function runSeed() {
         display_name: 'Dr. Anil Sahasrabudhe',
         demo_email: 'anil.sahasrabudhe@aicte.gov.in.demo',
         role: 'leadership',
-        designation: 'Director General',
+        designation: 'Chairman / Member Secretary',
         bureau_id: null,
         active: 1
       },
       {
-        id: 'usr-bureau-head',
+        id: 'usr-rb-head',
+        display_name: 'Dr. M. S. Manna',
+        demo_email: 'ms.manna@aicte.gov.in.demo',
+        role: 'bureau_official',
+        designation: 'Director, Regulation Bureau (RB)',
+        bureau_id: 'bur-rb',
+        active: 1
+      },
+      {
+        id: 'usr-pgrc-head',
         display_name: 'Prof. Rajive Kumar',
         demo_email: 'rajive.kumar@aicte.gov.in.demo',
         role: 'bureau_official',
-        designation: 'Member Secretary (Approvals)',
-        bureau_id: 'bur-approval',
+        designation: 'Incharge, Public Grievance Redressal Cell (PGRC)',
+        bureau_id: 'bur-pgrc',
         active: 1
       },
       {
@@ -67,8 +77,8 @@ export function runSeed() {
         display_name: 'Er. Neha Sharma',
         demo_email: 'neha.sharma@aicte.gov.in.demo',
         role: 'case_handler',
-        designation: 'Senior Technical Officer',
-        bureau_id: 'bur-approval',
+        designation: 'Senior Technical Officer (RB)',
+        bureau_id: 'bur-rb',
         active: 1
       },
       {
@@ -77,7 +87,7 @@ export function runSeed() {
         demo_email: 'sunil.verma@aicte.gov.in.demo',
         role: 'auditor',
         designation: 'Vigilance & Compliance Officer',
-        bureau_id: 'bur-vigilance',
+        bureau_id: 'bur-rb',
         active: 1
       },
       {
@@ -90,21 +100,21 @@ export function runSeed() {
         active: 1
       },
       {
-        id: 'usr-handler-2',
-        display_name: 'Dr. Priya Nambiar',
-        demo_email: 'priya.nambiar@aicte.gov.in.demo',
-        role: 'case_handler',
-        designation: 'Assistant Director (Academic)',
-        bureau_id: 'bur-academic',
+        id: 'usr-student',
+        display_name: 'Aarav Sharma',
+        demo_email: 'aarav.sharma@student.demo',
+        role: 'student',
+        designation: '3rd Year B.Tech Student (Complainant)',
+        bureau_id: null,
         active: 1
       },
       {
-        id: 'usr-handler-3',
-        display_name: 'Vikramaditya Rao',
-        demo_email: 'vikram.rao@aicte.gov.in.demo',
-        role: 'case_handler',
-        designation: 'Desk Officer (Grievance)',
-        bureau_id: 'bur-grievance',
+        id: 'usr-institution',
+        display_name: 'Dr. Meenakshi Sundaram',
+        demo_email: 'principal@rgpvdemo.edu.in.demo',
+        role: 'institution',
+        designation: 'Principal & Registrar, RGPV Demo Institute',
+        bureau_id: null,
         active: 1
       }
     ];
@@ -113,19 +123,21 @@ export function runSeed() {
       insertUser.run(u.id, u.display_name, u.demo_email, u.role, u.designation, u.bureau_id, u.active);
     }
 
-    // 3. Institutions (8 diverse sample institutions)
+    // 3. Institutions (8 sample institutions across all AICTE Regions)
     const insertInst = db.prepare(`
-      INSERT INTO institutions (id, institution_code, name, city, state, institution_type, source_reference, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO institutions (id, institution_code, aicte_permanent_id, name, city, state, region, institution_type, source_reference, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const institutions = [
       {
         id: 'inst-01',
         institution_code: 'AICTE-MH-2024-ENG-089',
+        aicte_permanent_id: '1-3321458291',
         name: 'RGPV Demonstration Institute of Engineering & Technology',
         city: 'Pune',
         state: 'Maharashtra',
+        region: 'WRO',
         institution_type: 'Engineering & Technology',
         source_reference: 'REG-WRO-2024-8841',
         updated_at: '2026-10-18T10:00:00Z'
@@ -133,72 +145,86 @@ export function runSeed() {
       {
         id: 'inst-02',
         institution_code: 'AICTE-DL-2023-MGT-042',
+        aicte_permanent_id: '1-4921008112',
         name: 'National Capital Institute of Business & Management',
         city: 'New Delhi',
         state: 'Delhi',
+        region: 'NRO',
         institution_type: 'Management',
         source_reference: 'REG-NRO-2023-1120',
-        updated_at: '2026-10-15T09:30:00Z'
+        updated_at: '2026-10-19T08:30:00Z'
       },
       {
         id: 'inst-03',
-        institution_code: 'AICTE-KA-2022-ENG-319',
-        name: 'Silicon Valley College of Technology and Research',
+        institution_code: 'AICTE-KA-2022-ENG-118',
+        aicte_permanent_id: '1-2291884021',
+        name: 'Deccan Institute of Advanced Technology & Applied Sciences',
         city: 'Bengaluru',
         state: 'Karnataka',
+        region: 'SWRO',
         institution_type: 'Engineering & Technology',
-        source_reference: 'REG-SWRO-2022-9401',
-        updated_at: '2026-10-17T14:15:00Z'
+        source_reference: 'REG-SWRO-2022-0941',
+        updated_at: '2026-10-15T14:15:00Z'
       },
       {
         id: 'inst-04',
-        institution_code: 'AICTE-TN-2024-PHARM-115',
-        name: 'Coromandel College of Pharmaceutical Sciences',
+        institution_code: 'AICTE-TN-2024-ENG-304',
+        aicte_permanent_id: '1-8841029411',
+        name: 'Southern Coastal Polytechnic & Engineering College',
         city: 'Chennai',
         state: 'Tamil Nadu',
-        institution_type: 'Pharmacy',
-        source_reference: 'REG-SRO-2024-3329',
-        updated_at: '2026-10-12T11:00:00Z'
+        region: 'SRO',
+        institution_type: 'Polytechnic & Applied Sciences',
+        source_reference: 'REG-SRO-2024-7719',
+        updated_at: '2026-10-17T11:45:00Z'
       },
       {
         id: 'inst-05',
-        institution_code: 'AICTE-UP-2023-POLY-067',
-        name: 'Ganga Valley Polytechnic & Skill Academy',
-        city: 'Lucknow',
-        state: 'Uttar Pradesh',
-        institution_type: 'Polytechnic',
-        source_reference: 'REG-NRO-2023-7744',
-        updated_at: '2026-10-19T08:45:00Z'
-      },
-      {
-        id: 'inst-06',
-        institution_code: 'AICTE-TG-2024-MCA-081',
-        name: 'Deccan Institute of Advanced Computing & MCA',
-        city: 'Hyderabad',
-        state: 'Telangana',
-        institution_type: 'Computer Applications',
-        source_reference: 'REG-SCRO-2024-5102',
+        institution_code: 'AICTE-WB-2023-PHA-017',
+        aicte_permanent_id: '1-5519820019',
+        name: 'East India Institute of Pharmaceutical Sciences & Research',
+        city: 'Kolkata',
+        state: 'West Bengal',
+        region: 'ERO',
+        institution_type: 'Pharmacy',
+        source_reference: 'REG-ERO-2023-3391',
         updated_at: '2026-10-16T16:20:00Z'
       },
       {
-        id: 'inst-07',
-        institution_code: 'AICTE-WB-2023-ENG-204',
-        name: 'Bengal Institute of Maritime Engineering & Naval Tech',
-        city: 'Kolkata',
-        state: 'West Bengal',
+        id: 'inst-06',
+        institution_code: 'AICTE-MP-2022-ENG-065',
+        aicte_permanent_id: '1-7738192004',
+        name: 'Malwa Technical Academy of Sciences & Engineering',
+        city: 'Indore',
+        state: 'Madhya Pradesh',
+        region: 'CRO',
         institution_type: 'Engineering & Technology',
-        source_reference: 'REG-ERO-2023-4419',
-        updated_at: '2026-10-14T12:00:00Z'
+        source_reference: 'REG-CRO-2022-5502',
+        updated_at: '2026-10-20T09:00:00Z'
+      },
+      {
+        id: 'inst-07',
+        institution_code: 'AICTE-RJ-2024-ARC-009',
+        aicte_permanent_id: '1-6629103991',
+        name: 'Desert School of Architecture & Urban Design',
+        city: 'Jaipur',
+        state: 'Rajasthan',
+        region: 'NWRO',
+        institution_type: 'Architecture & Planning',
+        source_reference: 'REG-NWRO-2024-2194',
+        updated_at: '2026-10-14T13:10:00Z'
       },
       {
         id: 'inst-08',
-        institution_code: 'AICTE-MP-2024-ENG-055',
-        name: 'Malwa Technical University Campus College',
-        city: 'Indore',
-        state: 'Madhya Pradesh',
-        institution_type: 'Engineering & Technology',
-        source_reference: 'REG-CRO-2024-1099',
-        updated_at: '2026-10-20T10:00:00Z'
+        institution_code: 'AICTE-UP-2023-MCA-081',
+        aicte_permanent_id: '1-1182993002',
+        name: 'Ganga Institute of Computer Applications & Information Tech',
+        city: 'Lucknow',
+        state: 'Uttar Pradesh',
+        region: 'NRO',
+        institution_type: 'Computer Applications & MCA',
+        source_reference: 'REG-NRO-2023-6621',
+        updated_at: '2026-10-18T15:40:00Z'
       }
     ];
 
@@ -206,451 +232,247 @@ export function runSeed() {
       insertInst.run(
         inst.id,
         inst.institution_code,
+        inst.aicte_permanent_id,
         inst.name,
         inst.city,
         inst.state,
+        inst.region,
         inst.institution_type,
         inst.source_reference,
         inst.updated_at
       );
     }
 
-    // 4. Cases (32 comprehensive demo cases)
+    // 4. Cases
     const insertCase = db.prepare(`
       INSERT INTO cases (
-        id, case_number, source_case_id, institution_id, category, priority, summary, status,
-        current_bureau_id, current_owner_id, created_at, updated_at, due_at,
-        next_action, next_action_due, closure_summary, closed_at, source_name, source_updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, case_number, source_case_id, institution_id, category, priority,
+        summary, status, escalation_level, current_bureau_id, current_owner_id,
+        complainant_name, complainant_email, is_anonymous, created_at, updated_at,
+        due_at, next_action, next_action_due, closure_summary, closed_at, source_name, source_updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    // Helper for relative timestamps based on 2026-10-20
-    const now = new Date('2026-10-20T12:00:00Z').getTime();
-    const daysAgo = (d: number) => new Date(now - d * 86400000).toISOString();
-    const daysAhead = (d: number) => new Date(now + d * 86400000).toISOString();
-    const hoursAhead = (h: number) => new Date(now + h * 3600000).toISOString();
-    const hoursAgo = (h: number) => new Date(now - h * 3600000).toISOString();
+    const now = new Date();
+    const isoHoursFromNow = (hours: number) => new Date(now.getTime() + hours * 3600 * 1000).toISOString();
+    const isoDaysFromNow = (days: number) => new Date(now.getTime() + days * 24 * 3600 * 1000).toISOString();
 
     const cases = [
+      // Case 1: Core RB Inspection Case on RGPV (triggers overlap with Case 4 in PGRC)
       {
         id: 'case-01',
         case_number: 'CASE-2026-0101',
-        source_case_id: 'CPGRAMS/MH/2026/8941',
+        source_case_id: 'CPGRAMS-2026-D00918',
         institution_id: 'inst-01',
-        category: 'Approvals',
+        category: 'Regulation Violation',
         priority: 'High',
-        summary: 'Alleged unauthorized sanction of additional 60 seats in Artificial Intelligence B.Tech without mandatory lab infrastructure inspection.',
-        status: 'In Review',
-        current_bureau_id: 'bur-approval',
+        summary: 'Inquiry into unauthorized intake expansion in B.Tech Artificial Intelligence & Data Science and violation of mandatory faculty cadre ratio (1:15).',
+        status: 'Under Process',
+        escalation_level: 1,
+        current_bureau_id: 'bur-rb',
         current_owner_id: 'usr-handler',
-        created_at: daysAgo(14),
-        updated_at: daysAgo(1),
-        due_at: hoursAhead(24), // Due soon!
-        next_action: 'Scrutinize virtual inspection recording and cross-verify with WRO approval log.',
-        next_action_due: hoursAhead(24),
+        complainant_name: 'AICTE Vigilance Committee (Suo Motu)',
+        complainant_email: 'vigilance.rb@aicte.gov.in.demo',
+        is_anonymous: 0,
+        created_at: isoDaysFromNow(-6),
+        updated_at: isoHoursFromNow(-4),
+        due_at: isoDaysFromNow(8),
+        next_action: 'Scrutinize institutional compliance affidavit and faculty appointment orders',
+        next_action_due: isoDaysFromNow(3),
         closure_summary: null,
         closed_at: null,
-        source_name: 'CPGRAMS Central',
-        source_updated_at: daysAgo(14)
+        source_name: 'Regulation Bureau Inward',
+        source_updated_at: isoHoursFromNow(-4)
       },
+
+      // Case 2: Overdue Case with SLA Escalation History (Demo Step 3)
       {
         id: 'case-02',
         case_number: 'CASE-2026-0102',
-        source_case_id: 'AICTE-GRV/2026/4102',
-        institution_id: 'inst-01',
-        category: 'Faculty & Staff',
+        source_case_id: 'PG-2026-09941',
+        institution_id: 'inst-02',
+        category: 'Fee & Admissions',
         priority: 'Urgent',
-        summary: 'Petition by 12 adjunct faculty members alleging arbitrary withholding of 7th CPC arrears and denial of provident fund deposits.',
-        status: 'In Review',
-        current_bureau_id: 'bur-faculty',
-        current_owner_id: 'usr-bureau-head',
-        created_at: daysAgo(28),
-        updated_at: daysAgo(3),
-        due_at: daysAgo(4), // OVERDUE!
-        next_action: 'Issue statutory show-cause notice under Section 10(k) of the AICTE Act.',
-        next_action_due: daysAgo(4),
+        summary: 'Non-refund of caution deposit and unapproved mandatory laptop fee levied upon 140 first-year MBA students.',
+        status: 'Escalated',
+        escalation_level: 2, // Escalated to Bureau Head
+        current_bureau_id: 'bur-pgrc',
+        current_owner_id: 'usr-pgrc-head',
+        complainant_name: 'Student Welfare Association (Delhi Chapter)',
+        complainant_email: 'student.welfare@delhi.demo',
+        is_anonymous: 0,
+        created_at: isoDaysFromNow(-18),
+        updated_at: isoDaysFromNow(-1),
+        due_at: isoDaysFromNow(-3), // Past due (OVERDUE)
+        next_action: 'Summon Director and Registrar for personal hearing before Member Secretary',
+        next_action_due: isoHoursFromNow(24),
         closure_summary: null,
         closed_at: null,
-        source_name: 'Faculty Grievance Portal',
-        source_updated_at: daysAgo(28)
+        source_name: 'PGRC Portal',
+        source_updated_at: isoDaysFromNow(-1)
       },
+
+      // Case 3: Due Soon Case (SLA Countdown < 48 hours)
       {
         id: 'case-03',
         case_number: 'CASE-2026-0103',
-        source_case_id: 'PG-CELL/2026/0019',
-        institution_id: 'inst-01',
-        category: 'Infrastructure',
+        source_case_id: 'APP-REV-2026-118',
+        institution_id: 'inst-03',
+        category: 'Approvals',
         priority: 'Medium',
-        summary: 'Student council representation regarding non-functional fire suppression system and inadequate accessibility ramps in academic block B.',
-        status: 'Open',
-        current_bureau_id: 'bur-vigilance',
-        current_owner_id: null, // UNASSIGNED
-        created_at: daysAgo(3),
-        updated_at: daysAgo(3),
-        due_at: daysAhead(7),
-        next_action: 'Assign regional compliance inspector to review safety certificates.',
-        next_action_due: daysAhead(4),
+        summary: 'Discrepancy in fire safety certification and built-up instructional area for newly proposed M.Tech Robotics block.',
+        status: 'Under Process',
+        escalation_level: 1,
+        current_bureau_id: 'bur-approval',
+        current_owner_id: 'usr-handler',
+        complainant_name: 'Regional Inspection Team (SWRO)',
+        complainant_email: 'inspections.swro@aicte.gov.in.demo',
+        is_anonymous: 0,
+        created_at: isoDaysFromNow(-8),
+        updated_at: isoHoursFromNow(-6),
+        due_at: isoHoursFromNow(18), // Due in 18 hours (DUE SOON)
+        next_action: 'Submit revised architect floor-plan validation certificate',
+        next_action_due: isoHoursFromNow(12),
         closure_summary: null,
         closed_at: null,
-        source_name: 'AICTE Student Portal',
-        source_updated_at: daysAgo(3)
+        source_name: 'Approval Bureau Scrutiny Desk',
+        source_updated_at: isoHoursFromNow(-6)
       },
+
+      // Case 4: Student Grievance on RGPV (Triggers Overlap with Case 1 in RB!)
       {
         id: 'case-04',
         case_number: 'CASE-2026-0104',
-        source_case_id: 'CPGRAMS/MH/2026/9110',
+        source_case_id: 'CPGRAMS-2026-M44109',
         institution_id: 'inst-01',
-        category: 'Approvals',
+        category: 'Student Grievance',
         priority: 'High',
-        summary: 'Discrepancy in reported student-to-teacher ratio (1:34 actual vs 1:15 reported in annual AICTE approval disclosure portal).',
-        status: 'Awaiting Information',
-        current_bureau_id: 'bur-approval',
-        current_owner_id: 'usr-handler',
-        created_at: daysAgo(10),
-        updated_at: daysAgo(2),
-        due_at: hoursAhead(18), // Due soon!
-        next_action: 'Awaiting certified payroll and biometric attendance export from institution registrar.',
-        next_action_due: hoursAhead(18),
+        summary: 'Denial of fee refund upon admission withdrawal and illegal withholding of original 10th and 12th marksheets by college administration.',
+        status: 'Under Process',
+        escalation_level: 1,
+        current_bureau_id: 'bur-pgrc',
+        current_owner_id: 'usr-pgrc-head',
+        complainant_name: 'Aarav Sharma (Student Complainant)',
+        complainant_email: 'aarav.sharma@student.demo',
+        is_anonymous: 0,
+        created_at: isoDaysFromNow(-7),
+        updated_at: isoHoursFromNow(-10),
+        due_at: isoDaysFromNow(7),
+        next_action: 'Await Action Taken Report (ATR) from Principal with proof of returned certificates',
+        next_action_due: isoDaysFromNow(2),
         closure_summary: null,
         closed_at: null,
-        source_name: 'CPGRAMS Central',
-        source_updated_at: daysAgo(10)
+        source_name: 'National Grievance Inward (PGRC)',
+        source_updated_at: isoHoursFromNow(-10)
       },
+
+      // Case 5: Infrastructure Deficiency in Tamil Nadu
       {
         id: 'case-05',
         case_number: 'CASE-2026-0105',
-        source_case_id: 'RO-WRO/2026/778',
-        institution_id: 'inst-01',
-        category: 'Fee & Admissions',
+        source_case_id: 'CPGRAMS-2026-S8912',
+        institution_id: 'inst-04',
+        category: 'Infrastructure',
         priority: 'Medium',
-        summary: 'Refusal to refund seat surrender fee within 7 days of withdrawal prior to cutoff round per AICTE norms.',
-        status: 'Resolved',
-        current_bureau_id: 'bur-grievance',
-        current_owner_id: 'usr-handler-3',
-        created_at: daysAgo(40),
-        updated_at: daysAgo(8),
-        due_at: daysAgo(10),
-        next_action: 'Resolution confirmed by complainant; file closed.',
-        next_action_due: null,
-        closure_summary: 'Institution processed full refund of Rs. 85,000 via NEFT reference N10449102. Verified by student.',
-        closed_at: daysAgo(8),
-        source_name: 'WRO Regional Office',
-        source_updated_at: daysAgo(8)
+        summary: 'Failure to provide required clean drinking water plants, barrier-free ramps, and disabled-friendly restrooms in academic block C.',
+        status: 'Under Process',
+        escalation_level: 1,
+        current_bureau_id: 'bur-rb',
+        current_owner_id: 'usr-handler',
+        complainant_name: 'Differently-Abled Students Collective',
+        complainant_email: 'advocacy.sro@demo',
+        is_anonymous: 0,
+        created_at: isoDaysFromNow(-10),
+        updated_at: isoDaysFromNow(-2),
+        due_at: isoDaysFromNow(11),
+        next_action: 'Verify physical inspection geotagged photographs submitted by SRO nodal officer',
+        next_action_due: isoDaysFromNow(4),
+        closure_summary: null,
+        closed_at: null,
+        source_name: 'SRO Zonal Grievance Desk',
+        source_updated_at: isoDaysFromNow(-2)
       },
+
+      // Case 6: Faculty Salary Withholding in West Bengal
       {
         id: 'case-06',
         case_number: 'CASE-2026-0106',
-        source_case_id: 'CPGRAMS/DL/2026/1029',
-        institution_id: 'inst-02',
-        category: 'Academic',
-        priority: 'High',
-        summary: 'Allegation of unapproved dual-degree executive PGDM program conducted with non-accredited overseas university.',
-        status: 'In Review',
-        current_bureau_id: 'bur-academic',
-        current_owner_id: 'usr-handler-2',
-        created_at: daysAgo(20),
-        updated_at: daysAgo(4),
-        due_at: daysAgo(2), // OVERDUE!
-        next_action: 'Review MoU terms and verify international collaboration approval clearance.',
-        next_action_due: daysAgo(2),
+        source_case_id: 'FAC-WB-2026-0041',
+        institution_id: 'inst-05',
+        category: 'Faculty & Staff',
+        priority: 'Urgent',
+        summary: 'Non-payment of 7th CPC revised scale salaries and delay of 4 months in disbursement of stipend to pharmacy teaching fellows.',
+        status: 'Pending',
+        escalation_level: 1,
+        current_bureau_id: 'bur-faculty',
+        current_owner_id: null, // Unassigned
+        complainant_name: 'Confederation of Pharmacy Faculty',
+        complainant_email: 'faculty.union@wb.demo',
+        is_anonymous: 0,
+        created_at: isoDaysFromNow(-2),
+        updated_at: isoDaysFromNow(-2),
+        due_at: isoDaysFromNow(12),
+        next_action: 'Assign desk officer and issue formal notice to Governing Body Chairman',
+        next_action_due: isoDaysFromNow(1),
         closure_summary: null,
         closed_at: null,
-        source_name: 'CPGRAMS Central',
-        source_updated_at: daysAgo(20)
+        source_name: 'Faculty Cell Portal',
+        source_updated_at: isoDaysFromNow(-2)
       },
+
+      // Case 7: Disposed / Resolved Case (for reports and audit demonstration)
       {
         id: 'case-07',
         case_number: 'CASE-2026-0107',
-        source_case_id: 'AICTE-VIG/2026/0091',
-        institution_id: 'inst-02',
-        category: 'Approvals',
-        priority: 'Urgent',
-        summary: 'Report of unnotified change in trust governance and transfer of physical campus land to a commercial subsidiary.',
-        status: 'In Review',
-        current_bureau_id: 'bur-vigilance',
-        current_owner_id: 'usr-auditor',
-        created_at: daysAgo(12),
-        updated_at: daysAgo(1),
-        due_at: daysAhead(5),
-        next_action: 'Request verified registry extract from Delhi Revenue Department.',
-        next_action_due: daysAhead(5),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'Vigilance Cell Internal',
-        source_updated_at: daysAgo(12)
+        source_case_id: 'EXAM-2026-081',
+        institution_id: 'inst-06',
+        category: 'Examination',
+        priority: 'Low',
+        summary: 'Delay in publication of revaluation results for 6th semester mechanical engineering examination.',
+        status: 'Disposed',
+        escalation_level: 1,
+        current_bureau_id: 'bur-academic',
+        current_owner_id: 'usr-handler',
+        complainant_name: 'Batch of 2025 Representatives',
+        complainant_email: 'students.mp@demo',
+        is_anonymous: 0,
+        created_at: isoDaysFromNow(-25),
+        updated_at: isoDaysFromNow(-5),
+        due_at: isoDaysFromNow(-10),
+        next_action: 'Disposed — results published and certified by University Examination Controller',
+        next_action_due: null,
+        closure_summary: 'University Examination Controller submitted official notification dated 15th October confirming declaration of revaluation marks. Grievance closed with complainant satisfaction.',
+        closed_at: isoDaysFromNow(-5),
+        source_name: 'Academic Bureau Desk',
+        source_updated_at: isoDaysFromNow(-5)
       },
+
+      // Case 8: Approval Bureau Notice on RGPV (3rd Bureau on RGPV)
       {
         id: 'case-08',
         case_number: 'CASE-2026-0108',
-        source_case_id: null,
-        institution_id: 'inst-02',
-        category: 'Faculty & Staff',
-        priority: 'Low',
-        summary: 'Routine query regarding qualification equivalence for Master in Design faculty appointment.',
-        status: 'Resolved',
-        current_bureau_id: 'bur-academic',
-        current_owner_id: 'usr-handler-2',
-        created_at: daysAgo(35),
-        updated_at: daysAgo(15),
-        due_at: daysAgo(14),
-        next_action: null,
-        next_action_due: null,
-        closure_summary: 'Clarification issued citing Gazette Notification AICTE/RIFD/2021/EQ.',
-        closed_at: daysAgo(15),
-        source_name: 'AICTE Helpdesk',
-        source_updated_at: daysAgo(15)
-      },
-      {
-        id: 'case-09',
-        case_number: 'CASE-2026-0109',
-        source_case_id: 'CPGRAMS/KA/2026/5541',
-        institution_id: 'inst-03',
-        category: 'Approvals',
-        priority: 'High',
-        summary: 'Operation of unauthorized off-campus extension center in Electronic City Phase 2 without AICTE Council approval.',
-        status: 'Open',
-        current_bureau_id: 'bur-approval',
-        current_owner_id: null, // UNASSIGNED
-        created_at: daysAgo(2),
-        updated_at: daysAgo(2),
-        due_at: daysAhead(12),
-        next_action: 'Initial screening and assignment to SWRO inspection desk.',
-        next_action_due: daysAhead(3),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'CPGRAMS Central',
-        source_updated_at: daysAgo(2)
-      },
-      {
-        id: 'case-10',
-        case_number: 'CASE-2026-0110',
-        source_case_id: 'SWRO/2026/0881',
-        institution_id: 'inst-03',
-        category: 'Academic',
-        priority: 'Medium',
-        summary: 'Failure to constitute mandatory Internal Complaints Committee (ICC) and Student Grievance Redressal Committee (SGRC).',
-        status: 'In Review',
-        current_bureau_id: 'bur-grievance',
-        current_owner_id: 'usr-handler-3',
-        created_at: daysAgo(15),
-        updated_at: daysAgo(3),
-        due_at: hoursAhead(36), // Due soon!
-        next_action: 'Verify notification gazette uploaded to college portal.',
-        next_action_due: hoursAhead(36),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'SWRO Office',
-        source_updated_at: daysAgo(15)
-      },
-      {
-        id: 'case-11',
-        case_number: 'CASE-2026-0111',
-        source_case_id: 'SWRO/2026/0411',
-        institution_id: 'inst-03',
-        category: 'Infrastructure',
-        priority: 'High',
-        summary: 'Complaint by PhD research scholars of non-provision of high-performance compute cluster despite sanctioned central lab grant.',
-        status: 'Awaiting Information',
-        current_bureau_id: 'bur-academic',
-        current_owner_id: 'usr-handler-2',
-        created_at: daysAgo(22),
-        updated_at: daysAgo(5),
-        due_at: daysAgo(5), // OVERDUE!
-        next_action: 'Auditing capital expenditure accounts submitted for FY 2024-25.',
-        next_action_due: daysAgo(5),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'SWRO Office',
-        source_updated_at: daysAgo(22)
-      },
-      {
-        id: 'case-12',
-        case_number: 'CASE-2026-0112',
-        source_case_id: 'CPGRAMS/TN/2026/3012',
-        institution_id: 'inst-04',
-        category: 'Approvals',
-        priority: 'Urgent',
-        summary: 'PCI vs AICTE dual approval compliance dispute regarding laboratory reagent disposal safety norms and B.Pharm intake validation.',
-        status: 'In Review',
-        current_bureau_id: 'bur-approval',
-        current_owner_id: 'usr-handler',
-        created_at: daysAgo(18),
-        updated_at: daysAgo(2),
-        due_at: daysAgo(1), // OVERDUE!
-        next_action: 'Schedule inter-council coordination committee review hearing.',
-        next_action_due: daysAgo(1),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'CPGRAMS Central',
-        source_updated_at: daysAgo(18)
-      },
-      {
-        id: 'case-13',
-        case_number: 'CASE-2026-0113',
-        source_case_id: 'SRO/2026/1908',
-        institution_id: 'inst-04',
-        category: 'Faculty & Staff',
-        priority: 'Medium',
-        summary: 'Non-disbursal of maternity leave allowances to female assistant professors per AICTE 2021 service regulations.',
-        status: 'Resolved',
-        current_bureau_id: 'bur-faculty',
-        current_owner_id: 'usr-bureau-head',
-        created_at: daysAgo(45),
-        updated_at: daysAgo(12),
-        due_at: daysAgo(15),
-        next_action: null,
-        next_action_due: null,
-        closure_summary: 'Institute governing body resolved the grievance and credited statutory leave encashment and arrears.',
-        closed_at: daysAgo(12),
-        source_name: 'SRO Office',
-        source_updated_at: daysAgo(12)
-      },
-      {
-        id: 'case-14',
-        case_number: 'CASE-2026-0114',
-        source_case_id: 'CPGRAMS/UP/2026/7781',
-        institution_id: 'inst-05',
-        category: 'Examination',
-        priority: 'High',
-        summary: 'Irregularities in diploma practical examination marks moderation and delayed marksheet dispatch.',
-        status: 'Open',
-        current_bureau_id: 'bur-academic',
-        current_owner_id: null, // UNASSIGNED
-        created_at: daysAgo(1),
-        updated_at: daysAgo(1),
-        due_at: daysAhead(10),
-        next_action: 'Assign investigation officer to verify BTEUP correlation data.',
-        next_action_due: daysAhead(4),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'CPGRAMS Central',
-        source_updated_at: daysAgo(1)
-      },
-      {
-        id: 'case-15',
-        case_number: 'CASE-2026-0115',
-        source_case_id: 'NRO/2026/499',
-        institution_id: 'inst-01',
-        category: 'Faculty & Staff',
-        priority: 'Urgent',
-        summary: 'Supplemental grievance from 5 senior professors regarding pension contribution withheld by management trust.',
-        status: 'In Review',
-        current_bureau_id: 'bur-faculty',
-        current_owner_id: 'usr-bureau-head',
-        created_at: daysAgo(25),
-        updated_at: daysAgo(4),
-        due_at: daysAgo(3), // OVERDUE
-        next_action: 'Joint hearing scheduled along with CASE-2026-0102.',
-        next_action_due: daysAgo(3),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'NRO Regional Office',
-        source_updated_at: daysAgo(25)
-      },
-      {
-        id: 'case-16',
-        case_number: 'CASE-2026-0116',
-        source_case_id: 'SCRO/2026/8821',
-        institution_id: 'inst-06',
-        category: 'Approvals',
-        priority: 'Medium',
-        summary: 'Intimation of delayed submission of Extension of Approval (EoA) online application due to portal technical maintenance.',
-        status: 'Closed',
-        current_bureau_id: 'bur-approval',
-        current_owner_id: 'usr-handler',
-        created_at: daysAgo(60),
-        updated_at: daysAgo(25),
-        due_at: daysAgo(30),
-        next_action: null,
-        next_action_due: null,
-        closure_summary: 'Condonation granted by Competent Authority under emergent portal contingency guidelines.',
-        closed_at: daysAgo(25),
-        source_name: 'SCRO Office',
-        source_updated_at: daysAgo(25)
-      },
-      {
-        id: 'case-17',
-        case_number: 'CASE-2026-0117',
-        source_case_id: 'ERO/2026/0114',
-        institution_id: 'inst-07',
-        category: 'Infrastructure',
-        priority: 'High',
-        summary: 'Simulation engine testing tanks found substandard during maritime training safety audit.',
-        status: 'In Review',
-        current_bureau_id: 'bur-vigilance',
-        current_owner_id: 'usr-auditor',
-        created_at: daysAgo(16),
-        updated_at: daysAgo(3),
-        due_at: hoursAhead(40), // Due soon!
-        next_action: 'Second-round physical verification report pending from DG Shipping liaison officer.',
-        next_action_due: hoursAhead(40),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'ERO Regional Office',
-        source_updated_at: daysAgo(16)
-      },
-      {
-        id: 'case-18',
-        case_number: 'CASE-2026-0118',
-        source_case_id: 'CPGRAMS/MH/2026/9931',
+        source_case_id: 'EOA-2026-WRO-99',
         institution_id: 'inst-01',
         category: 'Approvals',
-        priority: 'High',
-        summary: 'Parent association complaint regarding unapproved 60 student admissions in AI/ML branch without sanctioned university affiliation.',
-        status: 'In Review',
+        priority: 'Medium',
+        summary: 'Scrutiny of land title deed and compliance with AICTE Approval Process Handbook (APH 2026-27).',
+        status: 'Pending',
+        escalation_level: 1,
         current_bureau_id: 'bur-approval',
         current_owner_id: 'usr-handler',
-        created_at: daysAgo(7),
-        updated_at: daysAgo(1),
-        due_at: daysAhead(4),
-        next_action: 'Cross check with CASE-2026-0104 and confirm candidate linkage.',
-        next_action_due: daysAhead(4),
+        complainant_name: 'Scrutiny Committee (WRO)',
+        complainant_email: 'approvals.wro@aicte.gov.in.demo',
+        is_anonymous: 0,
+        created_at: isoDaysFromNow(-4),
+        updated_at: isoDaysFromNow(-1),
+        due_at: isoDaysFromNow(16),
+        next_action: 'Verification of municipal corporation building approval certificate',
+        next_action_due: isoDaysFromNow(5),
         closure_summary: null,
         closed_at: null,
-        source_name: 'CPGRAMS Central',
-        source_updated_at: daysAgo(7)
-      },
-      {
-        id: 'case-19',
-        case_number: 'CASE-2026-0119',
-        source_case_id: 'CRO/2026/2029',
-        institution_id: 'inst-08',
-        category: 'Fee & Admissions',
-        priority: 'Urgent',
-        summary: 'Complaint against capitation fee demanded in cash under management quota for B.Tech Computer Science.',
-        status: 'In Review',
-        current_bureau_id: 'bur-vigilance',
-        current_owner_id: 'usr-auditor',
-        created_at: daysAgo(9),
-        updated_at: daysAgo(1),
-        due_at: daysAhead(3),
-        next_action: 'Depute surprise inspection committee with district magistrate representative.',
-        next_action_due: daysAhead(3),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'CRO Regional Office',
-        source_updated_at: daysAgo(9)
-      },
-      {
-        id: 'case-20',
-        case_number: 'CASE-2026-0120',
-        source_case_id: 'CPGRAMS/DL/2026/3310',
-        institution_id: 'inst-02',
-        category: 'Academic',
-        priority: 'Medium',
-        summary: 'Revision of MBA curriculum without consultation with Board of Studies and industry advisory board.',
-        status: 'Awaiting Information',
-        current_bureau_id: 'bur-academic',
-        current_owner_id: 'usr-handler-2',
-        created_at: daysAgo(11),
-        updated_at: daysAgo(2),
-        due_at: daysAgo(1), // OVERDUE!
-        next_action: 'Academic council minutes requested from institute dean.',
-        next_action_due: daysAgo(1),
-        closure_summary: null,
-        closed_at: null,
-        source_name: 'CPGRAMS Central',
-        source_updated_at: daysAgo(11)
+        source_name: 'Approval Scrutiny System',
+        source_updated_at: isoDaysFromNow(-1)
       }
     ];
 
@@ -664,8 +486,12 @@ export function runSeed() {
         c.priority,
         c.summary,
         c.status,
+        c.escalation_level,
         c.current_bureau_id,
         c.current_owner_id,
+        c.complainant_name,
+        c.complainant_email,
+        c.is_anonymous,
         c.created_at,
         c.updated_at,
         c.due_at,
@@ -678,278 +504,311 @@ export function runSeed() {
       );
     }
 
-    // 5. Initial Assignments
-    const insertAssign = db.prepare(`
-      INSERT INTO assignments (
-        id, case_id, bureau_id, owner_id, assigned_by, started_at, ended_at, transfer_reason, handoff_note
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    // 5. Assignments (with complete audit handshakes)
+    const insertAssignment = db.prepare(`
+      INSERT INTO assignments (id, case_id, bureau_id, owner_id, assigned_by, started_at, ended_at, transfer_reason, handoff_note)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    // Case 01: Initial to Bureau Head, then transferred to Er. Neha Sharma
-    insertAssign.run(
-      'asg-01-a',
-      'case-01',
-      'bur-approval',
-      'usr-bureau-head',
-      'usr-leadership',
-      daysAgo(14),
-      daysAgo(10),
-      'Case triage and priority dispatch',
-      'High priority grievance received via CPGRAMS portal.'
-    );
-    insertAssign.run(
-      'asg-01-b',
-      'case-01',
-      'bur-approval',
-      'usr-handler',
-      'usr-bureau-head',
-      daysAgo(10),
-      null,
-      'Technical assessment assigned to desk officer',
-      'Please verify WRO inspection logs and compare with student seat allocation records.'
-    );
+    const assignments = [
+      {
+        id: 'asg-01',
+        case_id: 'case-01',
+        bureau_id: 'bur-rb',
+        owner_id: 'usr-handler',
+        assigned_by: 'usr-rb-head',
+        started_at: isoDaysFromNow(-6),
+        ended_at: null,
+        transfer_reason: 'Statutory verification initiated under Regulation Bureau mandate',
+        handoff_note: 'Please verify the approved AICTE student intake capacity against ERP enrollment rolls.'
+      },
+      {
+        id: 'asg-02-prev',
+        case_id: 'case-02',
+        bureau_id: 'bur-pgrc',
+        owner_id: 'usr-handler',
+        assigned_by: 'usr-pgrc-head',
+        started_at: isoDaysFromNow(-18),
+        ended_at: isoDaysFromNow(-3),
+        transfer_reason: 'Initial intake and preliminary institution inquiry',
+        handoff_note: 'Initial show-cause issued to college; response deadline expired without reply.'
+      },
+      {
+        id: 'asg-02-current',
+        case_id: 'case-02',
+        bureau_id: 'bur-pgrc',
+        owner_id: 'usr-pgrc-head',
+        assigned_by: 'usr-leadership',
+        started_at: isoDaysFromNow(-3),
+        ended_at: null,
+        transfer_reason: 'Automated SLA Breach: Escalated to Level 2 (Bureau Head / Incharge)',
+        handoff_note: 'Prescribed 15-day resolution window exceeded without institution compliance. Personal hearing mandated.'
+      },
+      {
+        id: 'asg-03',
+        case_id: 'case-03',
+        bureau_id: 'bur-approval',
+        owner_id: 'usr-handler',
+        assigned_by: 'usr-rb-head',
+        started_at: isoDaysFromNow(-8),
+        ended_at: null,
+        transfer_reason: 'Assigned for urgent 48h deadline compliance check',
+        handoff_note: 'Inspection committee report due within 18 hours.'
+      },
+      {
+        id: 'asg-04',
+        case_id: 'case-04',
+        bureau_id: 'bur-pgrc',
+        owner_id: 'usr-pgrc-head',
+        assigned_by: 'usr-leadership',
+        started_at: isoDaysFromNow(-7),
+        ended_at: null,
+        transfer_reason: 'Direct student grievance registered via CPGRAMS integration',
+        handoff_note: 'Notice issued to Principal Dr. Meenakshi Sundaram to submit Action Taken Report (ATR).'
+      }
+    ];
 
-    // Case 02: Assigned to Bureau Head
-    insertAssign.run(
-      'asg-02',
-      'case-02',
-      'bur-faculty',
-      'usr-bureau-head',
-      'usr-leadership',
-      daysAgo(28),
-      null,
-      'Direct statutory oversight required',
-      'High severity faculty welfare case involving 12 petitioners.'
-    );
+    for (const a of assignments) {
+      insertAssignment.run(
+        a.id,
+        a.case_id,
+        a.bureau_id,
+        a.owner_id,
+        a.assigned_by,
+        a.started_at,
+        a.ended_at,
+        a.transfer_reason,
+        a.handoff_note
+      );
+    }
 
-    // Case 04: Assigned to Er. Neha Sharma
-    insertAssign.run(
-      'asg-04',
-      'case-04',
-      'bur-approval',
-      'usr-handler',
-      'usr-bureau-head',
-      daysAgo(10),
-      null,
-      'Routine approval inspection review',
-      'Verify staff payroll and EPF remittance returns.'
-    );
-
-    // Case 06: Assigned to Dr. Priya Nambiar
-    insertAssign.run(
-      'asg-06',
-      'case-06',
-      'bur-academic',
-      'usr-handler-2',
-      'usr-leadership',
-      daysAgo(20),
-      null,
-      'International degree compliance desk',
-      'Review foreign university equivalence agreements.'
-    );
-
-    // Case 07: Assigned to Sunil Verma
-    insertAssign.run(
-      'asg-07',
-      'case-07',
-      'bur-vigilance',
-      'usr-auditor',
-      'usr-leadership',
-      daysAgo(12),
-      null,
-      'Vigilance inquiry ordered',
-      'Investigate land lease deed amendment.'
-    );
-
-    // 6. Chronological Case Events (for timeline testing)
+    // 6. Case Events (Chronological Timeline)
     const insertEvent = db.prepare(`
-      INSERT INTO case_events (
-        id, case_id, actor_id, event_type, from_value, to_value, note, created_at, metadata
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO case_events (id, case_id, actor_id, event_type, from_value, to_value, note, created_at, metadata)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertEvent.run(
-      'evt-01',
-      'case-01',
-      'usr-leadership',
-      'CREATED',
-      null,
-      'Open',
-      'Case ingested from CPGRAMS portal under reference CPGRAMS/MH/2026/8941',
-      daysAgo(14),
-      JSON.stringify({ channel: 'CPGRAMS', autoClassified: true })
-    );
+    const events = [
+      {
+        id: 'evt-01',
+        case_id: 'case-01',
+        actor_id: 'usr-rb-head',
+        event_type: 'CASE_CREATED',
+        from_value: null,
+        to_value: 'Under Process',
+        note: 'Regulatory investigation opened based on vigilance inspection findings.',
+        created_at: isoDaysFromNow(-6),
+        metadata: JSON.stringify({ category: 'Regulation Violation', priority: 'High' })
+      },
+      {
+        id: 'evt-02',
+        case_id: 'case-01',
+        actor_id: 'usr-rb-head',
+        event_type: 'CASE_ASSIGNED',
+        from_value: null,
+        to_value: 'Er. Neha Sharma',
+        note: 'Desk Officer assigned for document scrutiny and cadre verification.',
+        created_at: isoDaysFromNow(-6),
+        metadata: JSON.stringify({ bureau: 'Regulation Bureau (RB)' })
+      },
+      {
+        id: 'evt-03',
+        case_id: 'case-02',
+        actor_id: 'usr-pgrc-head',
+        event_type: 'CASE_CREATED',
+        from_value: null,
+        to_value: 'Under Process',
+        note: 'Student welfare grievance registered regarding unlawful MBA laptop fees.',
+        created_at: isoDaysFromNow(-18),
+        metadata: JSON.stringify({ source: 'PGRC Inward' })
+      },
+      {
+        id: 'evt-04',
+        case_id: 'case-02',
+        actor_id: 'usr-admin',
+        event_type: 'SLA_BREACH_DETECTED',
+        from_value: 'Under Process',
+        to_value: 'Overdue',
+        note: 'SLA deadline expired without resolution. Deterministic rule triggered escalation to Level 2.',
+        created_at: isoDaysFromNow(-3),
+        metadata: JSON.stringify({ overdue_hours: 72, escalation_tier: 'Level 2' })
+      },
+      {
+        id: 'evt-05',
+        case_id: 'case-02',
+        actor_id: 'usr-leadership',
+        event_type: 'CASE_ESCALATED',
+        from_value: 'Er. Neha Sharma',
+        to_value: 'Prof. Rajive Kumar',
+        note: 'Case escalated to Incharge PGRC for formal summoning of college authorities.',
+        created_at: isoDaysFromNow(-3),
+        metadata: JSON.stringify({ reason: 'SLA Breach Timeout' })
+      },
+      {
+        id: 'evt-06',
+        case_id: 'case-04',
+        actor_id: 'usr-student',
+        event_type: 'GRIEVANCE_FILED',
+        from_value: null,
+        to_value: 'Pending',
+        note: 'Student Aarav Sharma filed grievance regarding withheld certificates and refused fee refund.',
+        created_at: isoDaysFromNow(-7),
+        metadata: JSON.stringify({ roll_no: '2023CS041', documents_attached: 2 })
+      },
+      {
+        id: 'evt-07',
+        case_id: 'case-04',
+        actor_id: 'usr-pgrc-head',
+        event_type: 'NOTICE_ISSUED_TO_COLLEGE',
+        from_value: 'Pending',
+        to_value: 'Under Process',
+        note: 'Show-Cause Notice issued to Principal Dr. Meenakshi Sundaram requiring Action Taken Report (ATR) within 7 days.',
+        created_at: isoDaysFromNow(-5),
+        metadata: JSON.stringify({ notice_ref: 'AICTE/PGRC/2026/SC-881' })
+      }
+    ];
 
-    insertEvent.run(
-      'evt-02',
-      'case-01',
-      'usr-bureau-head',
-      'TRANSFERRED',
-      'Prof. Rajive Kumar',
-      'Er. Neha Sharma',
-      'Handed off to Senior Technical Officer for laboratory log verification.',
-      daysAgo(10),
-      JSON.stringify({ reason: 'Desk officer assignment' })
-    );
+    for (const e of events) {
+      insertEvent.run(e.id, e.case_id, e.actor_id, e.event_type, e.from_value, e.to_value, e.note, e.created_at, e.metadata);
+    }
 
-    insertEvent.run(
-      'evt-03',
-      'case-01',
-      'usr-handler',
-      'STATUS_CHANGE',
-      'Open',
-      'In Review',
-      'Initiated comprehensive audit of physical inspection video recordings.',
-      daysAgo(8),
-      null
-    );
-
-    insertEvent.run(
-      'evt-04',
-      'case-01',
-      'usr-handler',
-      'NEXT_ACTION_UPDATE',
-      null,
-      'Scrutinize virtual inspection recording and cross-verify with WRO approval log.',
-      'Target completion date set for 24 hours.',
-      daysAgo(1),
-      null
-    );
-
-    // Events for Case 02
-    insertEvent.run(
-      'evt-05',
-      'case-02',
-      'usr-leadership',
-      'CREATED',
-      null,
-      'Open',
-      'Ingested from Faculty Grievance Portal',
-      daysAgo(28),
-      null
-    );
-
-    insertEvent.run(
-      'evt-06',
-      'case-02',
-      'usr-bureau-head',
-      'STATUS_CHANGE',
-      'Open',
-      'In Review',
-      'Show-cause notice drafted under Section 10(k). Pending final legal signoff.',
-      daysAgo(15),
-      null
-    );
-
-    // 7. Candidate Related-Case Reviews (3 deterministic pairs)
+    // 7. Related Case Reviews (Pre-seeded Cross-Bureau Overlap Candidate)
     const insertRelated = db.prepare(`
       INSERT INTO related_case_reviews (
-        id, case_id, candidate_case_id, match_reasons, similarity_score, review_status,
-        reviewed_by, reviewed_at, review_note
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, case_id, candidate_case_id, match_reasons, similarity_score, review_status, reviewed_by, reviewed_at, review_note
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    // Pair 1: Pending review (CASE-2026-0104 and CASE-2026-0118)
-    insertRelated.run(
-      'rel-01',
+    const related = [
+      {
+        id: 'rel-01',
+        case_id: 'case-01', // RB case on RGPV
+        candidate_case_id: 'case-04', // PGRC case on RGPV
+        match_reasons: JSON.stringify([
+          'Identical AICTE Permanent ID (1-3321458291)',
+          'Common Institution: RGPV Demonstration Institute',
+          'Cross-Bureau Overlap: Regulation Bureau (RB) and PGRC concurrently dealing with same administration',
+          'Potential Conflict: Coordinated inquiry required before EoA renewal'
+        ]),
+        similarity_score: 0.94,
+        review_status: 'pending',
+        reviewed_by: null,
+        reviewed_at: null,
+        review_note: null
+      }
+    ];
+
+    for (const r of related) {
+      insertRelated.run(
+        r.id,
+        r.case_id,
+        r.candidate_case_id,
+        r.match_reasons,
+        r.similarity_score,
+        r.review_status,
+        r.reviewed_by,
+        r.reviewed_at,
+        r.review_note
+      );
+    }
+
+    // 8. Action Taken Reports (Initial seed for Dr. Meenakshi Sundaram)
+    const insertAtr = db.prepare(`
+      INSERT INTO action_taken_reports (
+        id, case_id, institution_id, submitted_by_name, submitted_by_role, submission_text, action_taken_date, evidence_files, created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    insertAtr.run(
+      'atr-01',
       'case-04',
-      'case-18',
-      JSON.stringify([
-        'Same Institution: AICTE-MH-2024-ENG-089 (RGPV Demonstration Institute)',
-        'Matching category: Approvals (AI/ML seat sanction & student-teacher ratio discrepancy)',
-        'Concurrent CPGRAMS petitions filed within 3 days window'
-      ]),
-      0.89,
-      'pending',
-      null,
-      null,
-      null
+      'inst-01',
+      'Dr. Meenakshi Sundaram',
+      'Principal, RGPV Demo Institute',
+      'The college Grievance Redressal Committee met on 18th October. Original 10th and 12th certificates have been verified and made available for immediate collection. The fee refund voucher of Rs. 42,500 has been sanctioned via RTGS reference RTGS-PUNB-881290.',
+      isoDaysFromNow(-2),
+      JSON.stringify(['RTGS_Bank_Receipt_42500.pdf', 'GRC_Meeting_Minutes_18Oct.pdf']),
+      isoDaysFromNow(-2)
     );
 
-    // Pair 2: Confirmed related (CASE-2026-0102 and CASE-2026-0115)
-    insertRelated.run(
-      'rel-02',
-      'case-02',
-      'case-15',
-      JSON.stringify([
-        'Same Institution: AICTE-MH-2024-ENG-089',
-        'Same subject matter: Faculty 7th CPC arrears and withheld retirement benefits',
-        'Petitioners belong to the same parent engineering department'
-      ]),
-      0.94,
-      'confirmed_related',
-      'usr-bureau-head',
-      daysAgo(2),
-      'Confirmed related grievance cluster. Both petitions will be heard concurrently under unified show-cause proceeding.'
-    );
-
-    // Pair 3: Rejected related (CASE-2026-0107 and CASE-2026-0106)
-    insertRelated.run(
-      'rel-03',
-      'case-07',
-      'case-06',
-      JSON.stringify([
-        'Same Institution: AICTE-DL-2023-MGT-042',
-        'Different focus areas: Land transfer vigilance vs Academic collaboration'
-      ]),
-      0.45,
-      'rejected',
-      'usr-auditor',
-      daysAgo(1),
-      'Distinct administrative issues. Academic syllabus compliance must not be entangled with land title inquiry.'
-    );
-
-    // 8. Audit Events
+    // 9. Audit Events (Immutable Append-Only Audit Trail)
     const insertAudit = db.prepare(`
-      INSERT INTO audit_events (
-        id, actor_id, actor_name, role, action, target_type, target_id, result, created_at, metadata
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO audit_events (id, actor_id, actor_name, role, action, target_type, target_id, result, created_at, metadata)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertAudit.run(
-      'aud-01',
-      'usr-admin',
-      'Amit Patel',
-      'admin',
-      'INITIALIZE_DEMO_SEED',
-      'demo',
-      null,
-      'SUCCESS',
-      daysAgo(30),
-      JSON.stringify({ datasetVersion: '2026.1.0-sih' })
-    );
+    const audits = [
+      {
+        id: 'aud-01',
+        actor_id: 'usr-admin',
+        actor_name: 'Amit Patel',
+        role: 'admin',
+        action: 'SYSTEM_BOOTSTRAP_SEED',
+        target_type: 'system',
+        target_id: 'database',
+        result: 'SUCCESS',
+        created_at: isoDaysFromNow(-18),
+        metadata: JSON.stringify({ version: '1.0.0-sih2026', total_institutions: 8, total_cases: 8 })
+      },
+      {
+        id: 'aud-02',
+        actor_id: 'usr-rb-head',
+        actor_name: 'Dr. M. S. Manna',
+        role: 'bureau_official',
+        action: 'CASE_ASSIGNMENT',
+        target_type: 'case',
+        target_id: 'case-01',
+        result: 'SUCCESS',
+        created_at: isoDaysFromNow(-6),
+        metadata: JSON.stringify({ case_number: 'CASE-2026-0101', assigned_to: 'Er. Neha Sharma', bureau: 'Regulation Bureau' })
+      },
+      {
+        id: 'aud-03',
+        actor_id: 'usr-leadership',
+        actor_name: 'Dr. Anil Sahasrabudhe',
+        role: 'leadership',
+        action: 'AUTOMATED_ESCALATION_TRIGGERED',
+        target_type: 'case',
+        target_id: 'case-02',
+        result: 'SUCCESS',
+        created_at: isoDaysFromNow(-3),
+        metadata: JSON.stringify({ case_number: 'CASE-2026-0102', reason: 'SLA overdue breach', from_level: 1, to_level: 2 })
+      },
+      {
+        id: 'aud-04',
+        actor_id: 'usr-institution',
+        actor_name: 'Dr. Meenakshi Sundaram',
+        role: 'institution',
+        action: 'ACTION_TAKEN_REPORT_SUBMITTED',
+        target_type: 'case',
+        target_id: 'case-04',
+        result: 'SUCCESS',
+        created_at: isoDaysFromNow(-2),
+        metadata: JSON.stringify({ case_number: 'CASE-2026-0104', institution: 'RGPV Demo Institute', atr_id: 'atr-01' })
+      }
+    ];
 
-    insertAudit.run(
-      'aud-02',
-      'usr-bureau-head',
-      'Prof. Rajive Kumar',
-      'bureau_official',
-      'TRANSFER_CASE',
-      'case',
-      'case-01',
-      'SUCCESS',
-      daysAgo(10),
-      JSON.stringify({ toOwner: 'Er. Neha Sharma', bureau: 'Approval & Affiliation' })
-    );
-
-    insertAudit.run(
-      'aud-03',
-      'usr-bureau-head',
-      'Prof. Rajive Kumar',
-      'bureau_official',
-      'CONFIRM_RELATED_CASE',
-      'case',
-      'case-02',
-      'SUCCESS',
-      daysAgo(2),
-      JSON.stringify({ candidateCase: 'case-15' })
-    );
+    for (const aud of audits) {
+      insertAudit.run(
+        aud.id,
+        aud.actor_id,
+        aud.actor_name,
+        aud.role,
+        aud.action,
+        aud.target_type,
+        aud.target_id,
+        aud.result,
+        aud.created_at,
+        aud.metadata
+      );
+    }
   })();
 
-  console.log('Seed executed successfully: 8 institutions, 20 cases, users, assignments, related pairs & audit logs.');
+  console.log('Seed executed successfully with 8 personas, 8 institutions, and 5-step demo datasets.');
 }
 
-// Auto-run if executed directly
-if (process.argv[1]?.endsWith('seed.ts') || process.argv[1]?.endsWith('seed.js')) {
+if (process.argv[1]?.endsWith('seed.ts')) {
   runSeed();
 }

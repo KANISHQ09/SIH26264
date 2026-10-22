@@ -157,6 +157,33 @@ export const api = {
     });
   },
 
+  // Action Taken Reports (ATR)
+  async getCaseAtrs(caseId: string): Promise<{ data: any[] }> {
+    return request(`/api/v1/cases/${encodeURIComponent(caseId)}/atr`);
+  },
+
+  async submitCaseAtr(caseId: string, payload: {
+    institutionId: string;
+    submittedByName: string;
+    submittedByRole?: string;
+    submissionText: string;
+    actionTakenDate: string;
+    evidenceFiles?: string[];
+  }): Promise<{ data: Case }> {
+    return request(`/api/v1/cases/${encodeURIComponent(caseId)}/atr`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+
+  async getInstitutionOverlap(id: string): Promise<{ data: any }> {
+    return request(`/api/v1/institutions/${encodeURIComponent(id)}/overlap`);
+  },
+
+  async getInstitutionRiskScore(id: string): Promise<{ data: any }> {
+    return request(`/api/v1/institutions/${encodeURIComponent(id)}/risk-score`);
+  },
+
   // Reports
   async getReportsSummary(): Promise<{ data: any }> {
     return request('/api/v1/reports/summary');

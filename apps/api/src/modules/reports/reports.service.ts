@@ -5,10 +5,10 @@ export const reportsService = {
     const ageBuckets = db.prepare(`
       SELECT 
         CASE 
-          WHEN (julianday('now') - julianday(created_at)) <= 7 THEN '< 7 Days'
-          WHEN (julianday('now') - julianday(created_at)) <= 15 THEN '8 - 15 Days'
-          WHEN (julianday('now') - julianday(created_at)) <= 30 THEN '16 - 30 Days'
-          ELSE '> 30 Days'
+          WHEN (julianday('now') - julianday(created_at)) < 15 THEN '< 15 Days'
+          WHEN (julianday('now') - julianday(created_at)) <= 30 THEN '15 - 30 Days'
+          WHEN (julianday('now') - julianday(created_at)) <= 60 THEN '30 - 60 Days'
+          ELSE '> 60 Days'
         END as bucket,
         COUNT(*) as count
       FROM cases

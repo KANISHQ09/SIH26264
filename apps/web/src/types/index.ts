@@ -3,9 +3,16 @@ export type DemoRole =
   | 'bureau_official'
   | 'case_handler'
   | 'auditor'
-  | 'admin';
+  | 'admin'
+  | 'student'
+  | 'institution';
 
 export type CaseStatus =
+  | 'Pending'
+  | 'Under Process'
+  | 'Transferred'
+  | 'Escalated'
+  | 'Disposed'
   | 'Open'
   | 'In Review'
   | 'Awaiting Information'
@@ -21,6 +28,8 @@ export type CaseCategory =
   | 'Examination'
   | 'Faculty & Staff'
   | 'Fee & Admissions'
+  | 'Regulation Violation'
+  | 'Student Grievance'
   | 'Other';
 
 export interface User {
@@ -41,18 +50,76 @@ export interface Bureau {
   active: number;
 }
 
+export interface OverlapStatus {
+  has_overlap: boolean;
+  banner_text: string;
+  has_rb_and_pgrc: boolean;
+  bureaus_involved: {
+    id: string;
+    name: string;
+    code: string;
+    active_count: number;
+  }[];
+  overlapping_cases: {
+    id: string;
+    case_number: string;
+    category: string;
+    priority: string;
+    status: string;
+    summary: string;
+    due_at: string | null;
+    bureau_name: string;
+    bureau_code: string;
+    owner_name?: string;
+  }[];
+}
+
+export interface RiskScoreBreakdown {
+  baseScore: number;
+  overdueCount: number;
+  overdueDeduction: number;
+  rbCount: number;
+  rbDeduction: number;
+  pgrcCount: number;
+  pgrcDeduction: number;
+  totalDeductions: number;
+}
+
+export interface InstitutionalRiskScore {
+  score: number;
+  level: 'Low' | 'Moderate' | 'High';
+  breakdown: RiskScoreBreakdown;
+  disclaimer: string;
+}
+
 export interface Institution {
   id: string;
   institution_code: string;
+  aicte_permanent_id?: string;
   name: string;
   city: string;
   state: string;
+  region?: string;
   institution_type: string;
   source_reference: string | null;
   updated_at: string;
   case_count?: number;
   open_case_count?: number;
   overdue_case_count?: number;
+  overlap?: OverlapStatus;
+  riskScore?: InstitutionalRiskScore;
+}
+
+export interface ActionTakenReport {
+  id: string;
+  case_id: string;
+  institution_id: string;
+  submitted_by_name: string;
+  submitted_by_role: string;
+  submission_text: string;
+  action_taken_date: string;
+  evidence_files?: string | string[] | null;
+  created_at: string;
 }
 
 export interface Case {
@@ -64,8 +131,12 @@ export interface Case {
   priority: CasePriority;
   summary: string;
   status: CaseStatus;
+  escalation_level?: number;
   current_bureau_id: string;
   current_owner_id: string | null;
+  complainant_name?: string | null;
+  complainant_email?: string | null;
+  is_anonymous?: number | boolean;
   created_at: string;
   updated_at: string;
   due_at: string | null;
@@ -77,8 +148,10 @@ export interface Case {
   source_updated_at: string | null;
   institution_name?: string;
   institution_code?: string;
+  aicte_permanent_id?: string;
   institution_city?: string;
   institution_state?: string;
+  region?: string;
   institution_type?: string;
   bureau_name?: string;
   bureau_code?: string;
@@ -90,6 +163,7 @@ export interface Case {
   activeAssignment?: Assignment;
   assignmentHistory?: Assignment[];
   pendingRelatedCount?: number;
+  atrs?: ActionTakenReport[];
 }
 
 export interface Assignment {

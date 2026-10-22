@@ -6,7 +6,9 @@ import {
   BarChart3,
   ShieldCheck,
   Settings2,
-  Sparkles,
+  Globe,
+  GraduationCap,
+  FileCheck,
   X
 } from 'lucide-react';
 import { useDemo } from '../context/DemoContext';
@@ -30,47 +32,108 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { currentUser } = useDemo();
 
-  const navItems = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-      description: 'Overview, KPIs & intake trends'
-    },
-    {
-      id: 'institutions',
-      label: 'Institutions',
-      icon: Building2,
-      badge: 'OneView',
-      description: 'Consolidated cases per college'
-    },
-    {
-      id: 'cases',
-      label: 'Cases & Grievances',
-      icon: FileSpreadsheet,
-      badge: overdueCount > 0 ? `${overdueCount} Overdue` : `${caseCount}`,
-      badgeColor: overdueCount > 0 ? 'bg-nexus-danger-light text-nexus-danger-text' : 'bg-slate-100 text-slate-700',
-      description: 'Workflow, assignment & status'
-    },
-    {
-      id: 'reports',
-      label: 'Reports & Analytics',
-      icon: BarChart3,
-      description: 'SLA metrics, age bands & CSV export'
-    },
-    {
-      id: 'audit',
-      label: 'Audit Trail',
-      icon: ShieldCheck,
-      description: 'Immutable event logs & compliance'
-    },
-    {
-      id: 'admin',
-      label: 'Demo Controls',
-      icon: Settings2,
-      description: 'Role permissions & state reset'
-    }
-  ];
+  const isStudent = currentUser?.role === 'student';
+  const isInstitution = currentUser?.role === 'institution';
+
+  let navItems: any[] = [];
+
+  if (isStudent) {
+    navItems = [
+      {
+        id: 'student_dashboard',
+        label: 'My Grievances',
+        icon: GraduationCap,
+        description: 'File & track personal complaints'
+      },
+      {
+        id: 'institutions',
+        label: 'AICTE Colleges',
+        icon: Building2,
+        badge: 'OneView',
+        description: 'Search approved technical colleges'
+      },
+      {
+        id: 'cases',
+        label: 'Public Grievance Registry',
+        icon: FileSpreadsheet,
+        description: 'Disposed & active case milestones'
+      }
+    ];
+  } else if (isInstitution) {
+    navItems = [
+      {
+        id: 'institution_dashboard',
+        label: 'Compliance & ATR Desk',
+        icon: FileCheck,
+        badge: 'Action Required',
+        badgeColor: 'bg-emerald-100 text-emerald-800',
+        description: 'Submit Action Taken Reports'
+      },
+      {
+        id: 'institutions',
+        label: 'College Dossier',
+        icon: Building2,
+        badge: 'OneView',
+        description: 'Cross-bureau inquiry history'
+      },
+      {
+        id: 'cases',
+        label: 'Active Notices',
+        icon: FileSpreadsheet,
+        badge: overdueCount > 0 ? `${overdueCount} Overdue` : undefined,
+        badgeColor: 'bg-rose-100 text-rose-800',
+        description: 'Show-cause notices & scrutiny'
+      },
+      {
+        id: 'reports',
+        label: 'Annual Reports',
+        icon: BarChart3,
+        description: 'Disposal rate & compliance history'
+      }
+    ];
+  } else {
+    navItems = [
+      {
+        id: 'dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        description: 'Overview, KPIs & intake trends'
+      },
+      {
+        id: 'institutions',
+        label: 'Institutions',
+        icon: Building2,
+        badge: 'OneView',
+        description: 'Consolidated cases per college'
+      },
+      {
+        id: 'cases',
+        label: 'Cases & Grievances',
+        icon: FileSpreadsheet,
+        badge: overdueCount > 0 ? `${overdueCount} Overdue` : `${caseCount}`,
+        badgeColor: overdueCount > 0 ? 'bg-nexus-danger-light text-nexus-danger-text' : 'bg-slate-100 text-slate-700',
+        description: 'Workflow, assignment & status'
+      },
+      {
+        id: 'reports',
+        label: 'Reports & Analytics',
+        icon: BarChart3,
+        description: 'SLA metrics, age bands & CSV export'
+      },
+      {
+        id: 'audit',
+        label: 'Audit Trail',
+        icon: ShieldCheck,
+        description: 'Immutable event logs & compliance'
+      },
+      {
+        id: 'admin',
+        label: 'Demo Controls',
+        icon: Settings2,
+        description: 'Role permissions & state reset'
+      }
+    ];
+  }
 
   const handleSelectTab = (tabId: string) => {
     setCurrentTab(tabId);
@@ -94,6 +157,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           )}
         </div>
+
+        {/* Public Landing Page link */}
+        <button
+          onClick={() => handleSelectTab('landing')}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition group mb-2 border ${
+            currentTab === 'landing'
+              ? 'bg-nexus-primary text-white font-medium border-nexus-primary shadow-xs'
+              : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Globe className={`w-4 h-4 shrink-0 ${currentTab === 'landing' ? 'text-white' : 'text-nexus-primary'}`} />
+            <span className="text-xs font-semibold">Public Landing Page</span>
+          </div>
+          <span className="text-[10px] text-slate-400 font-mono">Home</span>
+        </button>
 
         {navItems.map(item => {
           const Icon = item.icon;
@@ -128,15 +207,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-3 border-t border-nexus-border bg-slate-50/60">
         <div className="p-2.5 rounded-lg border border-nexus-border bg-white space-y-2">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-nexus-primary" />
-            <span className="text-xs font-semibold text-nexus-navy">Smart Automation</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="text-[11px] font-bold text-nexus-navy uppercase tracking-wider truncate">
+              SIH 2026 PS 26264
+            </span>
           </div>
-          <p className="text-[11px] text-nexus-navy-muted leading-relaxed">
-            Consolidating multi-bureau workflows for AICTE Regulation Bureau.
-          </p>
-          <div className="pt-1.5 border-t border-nexus-border/60 flex items-center justify-between text-[10px] text-nexus-navy-light">
-            <span>Role Scope</span>
-            <span className="font-semibold text-nexus-navy uppercase">{currentUser?.role?.replace('_', ' ')}</span>
+          <div className="text-[11px] text-nexus-navy-muted leading-tight">
+            AICTE Regulation Bureau & PGRC Monitoring Prototype
+          </div>
+          <div className="text-[10px] font-mono text-slate-500 bg-nexus-bg p-1 rounded border border-nexus-border">
+            Status: Deterministic Seed Active
           </div>
         </div>
       </div>
@@ -145,22 +225,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Desktop Sticky Sidebar (Visible on lg+) */}
-      <aside className="hidden lg:flex w-64 bg-nexus-card border-r border-nexus-border flex-col justify-between shrink-0 h-[calc(100vh-6rem)] sticky top-24 rounded-2xl shadow-nexus-card overflow-hidden">
+      {/* Desktop Sticky Rail */}
+      <aside className="hidden lg:block w-64 bg-nexus-card border border-nexus-border rounded-2xl shadow-nexus-card overflow-hidden shrink-0 self-start sticky top-20">
         {navContent}
       </aside>
 
-      {/* Mobile Slide-in Drawer (Visible on < lg when isMobileOpen) */}
+      {/* Mobile Drawer */}
       {isMobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-40 lg:hidden">
           <div
+            className="fixed inset-0 bg-nexus-navy/40 backdrop-blur-sm transition-opacity"
             onClick={onCloseMobile}
-            className="fixed inset-0 bg-nexus-navy/50 backdrop-blur-sm transition-opacity duration-200"
           />
-
-          {/* Drawer content */}
-          <div className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
+          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-nexus-card shadow-xl z-50 overflow-y-auto">
             {navContent}
           </div>
         </div>

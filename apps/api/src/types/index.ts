@@ -3,9 +3,16 @@ export type DemoRole =
   | 'bureau_official'
   | 'case_handler'
   | 'auditor'
-  | 'admin';
+  | 'admin'
+  | 'student'
+  | 'institution';
 
 export type CaseStatus =
+  | 'Pending'
+  | 'Under Process'
+  | 'Transferred'
+  | 'Escalated'
+  | 'Disposed'
   | 'Open'
   | 'In Review'
   | 'Awaiting Information'
@@ -21,6 +28,8 @@ export type CaseCategory =
   | 'Examination'
   | 'Faculty & Staff'
   | 'Fee & Admissions'
+  | 'Regulation Violation'
+  | 'Student Grievance'
   | 'Other';
 
 export interface User {
@@ -43,9 +52,11 @@ export interface Bureau {
 export interface Institution {
   id: string;
   institution_code: string;
+  aicte_permanent_id: string;
   name: string;
   city: string;
   state: string;
+  region: string;
   institution_type: string;
   source_reference: string | null;
   updated_at: string;
@@ -60,8 +71,12 @@ export interface Case {
   priority: CasePriority;
   summary: string;
   status: CaseStatus;
+  escalation_level: number;
   current_bureau_id: string;
   current_owner_id: string | null;
+  complainant_name: string | null;
+  complainant_email: string | null;
+  is_anonymous: number;
   created_at: string;
   updated_at: string;
   due_at: string | null;
@@ -76,8 +91,10 @@ export interface Case {
 export interface CaseWithRelations extends Case {
   institution_name?: string;
   institution_code?: string;
+  aicte_permanent_id?: string;
   institution_city?: string;
   institution_state?: string;
+  region?: string;
   bureau_name?: string;
   bureau_code?: string;
   owner_name?: string;
@@ -129,6 +146,18 @@ export interface RelatedCaseReview {
   candidate_status?: string;
   candidate_bureau?: string;
   reviewer_name?: string;
+}
+
+export interface ActionTakenReport {
+  id: string;
+  case_id: string;
+  institution_id: string;
+  submitted_by_name: string;
+  submitted_by_role: string;
+  submission_text: string;
+  action_taken_date: string;
+  evidence_files: string | null;
+  created_at: string;
 }
 
 export interface AuditEvent {

@@ -18,7 +18,8 @@ import {
   History,
   ShieldCheck,
   Check,
-  Ban
+  Ban,
+  FileCheck
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Case, CaseEvent, RelatedCaseCandidate } from '../types';
@@ -26,6 +27,7 @@ import { useDemo } from '../context/DemoContext';
 import { AssignModal } from './AssignModal';
 import { StatusModal } from './StatusModal';
 import { NextActionModal } from './NextActionModal';
+import { SubmitAtrModal } from './SubmitAtrModal';
 
 interface CaseDetailModalProps {
   caseId: string | null;
@@ -37,13 +39,14 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [timeline, setTimeline] = useState<CaseEvent[]>([]);
   const [relatedCandidates, setRelatedCandidates] = useState<RelatedCaseCandidate[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'related' | 'assignments'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'related' | 'assignments' | 'atrs'>('overview');
   const [isLoading, setIsLoading] = useState(true);
 
   // Sub-modals
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isNextActionOpen, setIsNextActionOpen] = useState(false);
+  const [isAtrOpen, setIsAtrOpen] = useState(false);
 
   // Review note modal or inline state
   const [reviewingCandidateId, setReviewingCandidateId] = useState<string | null>(null);
@@ -271,6 +274,17 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
           >
             Assignment Chain ({caseData?.assignmentHistory?.length || 0})
           </button>
+          <button
+            onClick={() => setActiveTab('atrs')}
+            className={`py-3 text-xs font-semibold border-b-2 flex items-center gap-1.5 transition ${
+              activeTab === 'atrs'
+                ? 'border-nexus-primary text-nexus-primary'
+                : 'border-transparent text-nexus-navy-muted hover:text-nexus-navy'
+            }`}
+          >
+            <FileCheck className="w-3.5 h-3.5" />
+            <span>Action Taken Reports ({caseData?.atrs?.length || 0})</span>
+          </button>
         </div>
 
         {/* Modal Scrollable Body */}
@@ -288,7 +302,48 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
             <>
               {/* TAB 1: OVERVIEW */}
               {activeTab === 'overview' && (
-                <div className="space-y-6">
+                <div className="space-y-5">
+                  {/* SLA Escalation Alert Banner (Demo Step 3) */}
+                  {caseData.is_overdue ? (
+                    <div className="p-4 rounded-xl border border-rose-300 bg-rose-50/80 flex items-start gap-3 shadow-xs">
+                      <div className="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+                        <AlertTriangle className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h4 className="text-xs font-bold text-rose-950">
+                            SLA Breach Detected — Automated Escalation Triggered
+                          </h4>
+                          <span className="text-[10px] font-bold bg-rose-200 text-rose-900 px-2 py-0.5 rounded uppercase">
+                            Level {caseData.escalation_level || 2} Escalation Active
+                          </span>
+                        </div>
+                        <p className="text-xs text-rose-900/90 mt-1 leading-relaxed">
+                          This case has passed its prescribed statutory disposal timeline ({caseData.due_at ? new Date(caseData.due_at).toLocaleDateString() : 'Overdue'}). Deterministic rule has escalated this matter from Desk Officer to <strong>Bureau Head (Level 2)</strong> for immediate summoning and intervention.
+                        </p>
+                      </div>
+                    </div>
+                  ) : caseData.is_due_soon ? (
+                    <div className="p-4 rounded-xl border border-amber-300 bg-amber-50/80 flex items-start gap-3 shadow-xs">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h4 className="text-xs font-bold text-amber-950">
+                            ⏱️ Prescribed Timeline Alert — Due Within 48 Hours
+                          </h4>
+                          <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded uppercase">
+                            Urgent Resolution Window
+                          </span>
+                        </div>
+                        <p className="text-xs text-amber-900/90 mt-1 leading-relaxed">
+                          Target disposal deadline: <strong>{caseData.due_at ? new Date(caseData.due_at).toLocaleString() : 'Approaching'}</strong>. Final Action Taken Report (ATR) must be examined prior to timeout.
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+
                   {/* Next Action Callout Card */}
                   <div className="p-4 rounded-xl border border-nexus-primary-border bg-nexus-primary-subtle/50 flex items-start justify-between gap-4">
                     <div className="space-y-1">
@@ -613,6 +668,69 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
                   </div>
                 </div>
               )}
+
+              {/* TAB 5: ACTION TAKEN REPORTS (ATR) */}
+              {activeTab === 'atrs' && (
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-slate-50 border border-nexus-border rounded-xl">
+                    <div>
+                      <h4 className="text-xs font-bold text-nexus-navy">Official Action Taken Reports (ATRs)</h4>
+                      <p className="text-[11px] text-nexus-navy-muted">
+                        Formal compliance statements and proof of resolution submitted by the institution or verified by AICTE desk officers.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setIsAtrOpen(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition"
+                    >
+                      <FileCheck className="w-3.5 h-3.5" />
+                      <span>Submit Action Taken Report (ATR)</span>
+                    </button>
+                  </div>
+
+                  {(!caseData.atrs || caseData.atrs.length === 0) ? (
+                    <div className="py-12 text-center text-xs text-nexus-navy-muted border border-dashed border-nexus-border rounded-xl">
+                      No formal Action Taken Report (ATR) recorded yet. The institution has been notified to submit compliance documents.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {caseData.atrs.map((atr: any, idx: number) => (
+                        <div key={atr.id || idx} className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-emerald-950">{atr.submitted_by_name}</span>
+                              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded uppercase">
+                                {atr.submitted_by_role}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-slate-500 font-mono">
+                              {new Date(atr.created_at).toLocaleString()}
+                            </span>
+                          </div>
+
+                          <div className="text-xs text-slate-800 bg-white p-3 rounded-lg border border-emerald-100 leading-relaxed">
+                            {atr.submission_text}
+                          </div>
+
+                          {atr.evidence_files && (
+                            <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-600">
+                              <span className="font-semibold text-slate-700">Evidentiary Attachments:</span>
+                              <div className="flex flex-wrap gap-1.5 font-mono">
+                                {(typeof atr.evidence_files === 'string' ? JSON.parse(atr.evidence_files || '[]') : atr.evidence_files).map((file: string, fIdx: number) => (
+                                  <span key={fIdx} className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[10px] text-slate-700 flex items-center gap-1">
+                                    <span>📎</span>
+                                    <span>{file}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
@@ -643,6 +761,15 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({ caseId, onClos
             caseItem={caseData}
             isOpen={isNextActionOpen}
             onClose={() => setIsNextActionOpen(false)}
+            onSuccess={() => {
+              loadData();
+              triggerRefresh();
+            }}
+          />
+          <SubmitAtrModal
+            caseData={caseData}
+            isOpen={isAtrOpen}
+            onClose={() => setIsAtrOpen(false)}
             onSuccess={() => {
               loadData();
               triggerRefresh();

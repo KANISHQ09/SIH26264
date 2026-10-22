@@ -6,20 +6,34 @@ import { ToastContainer } from './components/ToastContainer';
 import { CaseDetailModal } from './components/CaseDetailModal';
 import { InstitutionDetailModal } from './components/InstitutionDetailModal';
 import { NewCaseModal } from './components/NewCaseModal';
+import { SignInModal } from './components/SignInModal';
 
+import { LandingPageView } from './views/LandingPageView';
 import { DashboardView } from './views/DashboardView';
+import { StudentDashboardView } from './views/StudentDashboardView';
+import { InstitutionDashboardView } from './views/InstitutionDashboardView';
 import { InstitutionsView } from './views/InstitutionsView';
 import { CasesView } from './views/CasesView';
 import { ReportsView } from './views/ReportsView';
 import { AuditTrailView } from './views/AuditTrailView';
 import { DemoAdminView } from './views/DemoAdminView';
+import { DemoRole } from './types';
 
 const MainLayout: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState('dashboard');
+  const [currentTab, setCurrentTab] = useState('landing');
   const [casesFilter, setCasesFilter] = useState<any>(undefined);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { activeCaseId, setActiveCaseId, activeInstitutionId, setActiveInstitutionId } = useDemo();
+  const {
+    currentUser,
+    switchRole,
+    activeCaseId,
+    setActiveCaseId,
+    activeInstitutionId,
+    setActiveInstitutionId,
+    isSignInModalOpen,
+    setIsSignInModalOpen
+  } = useDemo();
 
   const handleNavigateToCases = (filter?: any) => {
     setCasesFilter(filter);
@@ -30,6 +44,53 @@ const MainLayout: React.FC = () => {
     setCurrentTab('institutions');
   };
 
+  const handleEnterPortal = (role?: DemoRole, targetTab?: string) => {
+    if (role) {
+      switchRole(role);
+      if (role === 'student') {
+        setCurrentTab(targetTab || 'student_dashboard');
+        return;
+      }
+      if (role === 'institution') {
+        setCurrentTab(targetTab || 'institution_dashboard');
+        return;
+      }
+    }
+    setCurrentTab(targetTab || 'dashboard');
+  };
+
+  // If in landing view, render the Stripe-grade landing page
+  if (currentTab === 'landing') {
+    return (
+      <div className="min-h-screen bg-white">
+        <LandingPageView
+          onEnterPortal={handleEnterPortal}
+          onOpenSignIn={() => setIsSignInModalOpen(true)}
+        />
+
+        {/* Global Modals & Workspace Drawers */}
+        <CaseDetailModal
+          caseId={activeCaseId}
+          onClose={() => setActiveCaseId(null)}
+        />
+
+        <InstitutionDetailModal
+          institutionId={activeInstitutionId}
+          onClose={() => setActiveInstitutionId(null)}
+        />
+
+        <SignInModal
+          isOpen={isSignInModalOpen}
+          onClose={() => setIsSignInModalOpen(false)}
+          onSelectRole={(role) => handleEnterPortal(role)}
+        />
+
+        <ToastContainer />
+      </div>
+    );
+  }
+
+  // Render Internal Operations Console
   return (
     <div className="min-h-screen bg-nexus-bg text-nexus-navy flex flex-col font-sans">
       {/* Top Navigation & Role Bar */}
@@ -54,11 +115,17 @@ const MainLayout: React.FC = () => {
 
         {/* Dynamic View Canvas */}
         <main className="flex-1 min-w-0">
-          {currentTab === 'dashboard' && (
-            <DashboardView
-              onNavigateToCases={handleNavigateToCases}
-              onNavigateToInstitutions={handleNavigateToInstitutions}
-            />
+          {(currentTab === 'dashboard' || currentTab === 'student_dashboard' || currentTab === 'institution_dashboard') && (
+            currentUser?.role === 'student' ? (
+              <StudentDashboardView />
+            ) : currentUser?.role === 'institution' ? (
+              <InstitutionDashboardView />
+            ) : (
+              <DashboardView
+                onNavigateToCases={handleNavigateToCases}
+                onNavigateToInstitutions={handleNavigateToInstitutions}
+              />
+            )
           )}
 
           {currentTab === 'institutions' && <InstitutionsView />}
@@ -85,6 +152,12 @@ const MainLayout: React.FC = () => {
       />
 
       <NewCaseModal />
+
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+        onSelectRole={(role) => handleEnterPortal(role)}
+      />
 
       {/* Global Toast Stack */}
       <ToastContainer />

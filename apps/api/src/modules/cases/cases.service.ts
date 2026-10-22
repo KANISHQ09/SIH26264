@@ -215,11 +215,17 @@ export const casesService = {
       SELECT COUNT(*) as count FROM related_case_reviews WHERE case_id = ? AND review_status = 'pending'
     `).get(foundCase.id) as { count: number };
 
+    // Get Action Taken Reports
+    const atrs = db.prepare(`
+      SELECT * FROM action_taken_reports WHERE case_id = ? ORDER BY created_at DESC
+    `).all(foundCase.id);
+
     return {
       ...foundCase,
       activeAssignment,
       assignmentHistory,
-      pendingRelatedCount: pendingRelated.count
+      pendingRelatedCount: pendingRelated.count,
+      atrs
     };
   },
 
@@ -468,33 +474,69 @@ export const casesService = {
     currentBureauId: string;
     dueAt?: string | null;
     nextAction?: string | null;
+    complainantName?: string | null;
+    complainantEmail?: string | null;
+    isAnonymous?: boolean;
     actor: { id: string; display_name: string; role: string };
   }) {
-    const { institutionId, category, priority = 'Medium', summary, sourceCaseId, currentBureauId, dueAt, nextAction, actor } = payload;
+    const {
+      institutionId,
+      category,
+      priority = 'Medium',
+      summary,
+      sourceCaseId,
+      currentBureauId,
+      dueAt,
+      nextAction,
+      complainantName,
+      complainantEmail,
+      isAnonymous = false,
+      actor
+    } = payload;
 
     const countRow = db.prepare('SELECT COUNT(*) as count FROM cases').get() as { count: number };
     const caseNumber = `CASE-2026-${String(countRow.count + 101).padStart(4, '0')}`;
     const id = 'case-' + Date.now();
     const now = new Date().toISOString();
+    // Default 15 days SLA if dueAt not provided
+    const computedDueAt = dueAt || new Date(Date.now() + 15 * 24 * 3600 * 1000).toISOString();
 
     const transaction = db.transaction(() => {
       db.prepare(`
         INSERT INTO cases (
           id, case_number, source_case_id, institution_id, category, priority, summary, status,
-          current_bureau_id, current_owner_id, created_at, updated_at, due_at, next_action, source_name
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Open', ?, NULL, ?, ?, ?, ?, 'Manual Official Entry')
-      `).run(id, caseNumber, sourceCaseId || null, institutionId, category, priority, summary, currentBureauId, now, now, dueAt || null, nextAction || null);
+          current_bureau_id, current_owner_id, complainant_name, complainant_email, is_anonymous,
+          created_at, updated_at, due_at, next_action, source_name
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        caseNumber,
+        sourceCaseId || null,
+        institutionId,
+        category,
+        priority,
+        summary,
+        currentBureauId,
+        complainantName || actor.display_name,
+        complainantEmail || null,
+        isAnonymous ? 1 : 0,
+        now,
+        now,
+        computedDueAt,
+        nextAction || 'Preliminary scrutiny and officer assignment',
+        actor.role === 'student' ? 'Student Grievance Redressal Portal' : 'AICTE Central Inward'
+      );
 
       db.prepare(`
         INSERT INTO assignments (
           id, case_id, bureau_id, owner_id, assigned_by, started_at, transfer_reason
-        ) VALUES (?, ?, ?, NULL, ?, ?, 'Initial creation triage')
+        ) VALUES (?, ?, ?, NULL, ?, ?, 'Initial registration and bureau dispatch')
       `).run('asg-' + Date.now(), id, currentBureauId, actor.id, now);
 
       db.prepare(`
         INSERT INTO case_events (
           id, case_id, actor_id, event_type, to_value, note, created_at
-        ) VALUES (?, ?, ?, 'CREATED', 'Open', 'Case initiated in Nexus 0 coordination system', ?)
+        ) VALUES (?, ?, ?, 'CREATED', 'Pending', 'Case registered in AICTE OneView tracking system', ?)
       `).run('evt-' + Date.now(), id, actor.id, now);
 
       db.prepare(`
@@ -506,5 +548,79 @@ export const casesService = {
 
     transaction();
     return this.getById(id);
+  },
+
+  getAtrs(caseId: string) {
+    return db.prepare(`
+      SELECT * FROM action_taken_reports WHERE case_id = ? ORDER BY created_at DESC
+    `).all(caseId);
+  },
+
+  submitAtr(caseId: string, payload: {
+    institutionId: string;
+    submittedByName: string;
+    submittedByRole?: string;
+    submissionText: string;
+    actionTakenDate: string;
+    evidenceFiles?: string[];
+    actor: { id: string; display_name: string; role: string };
+  }) {
+    const { institutionId, submittedByName, submittedByRole = 'institution', submissionText, actionTakenDate, evidenceFiles = [], actor } = payload;
+    const foundCase = db.prepare('SELECT * FROM cases WHERE id = ?').get(caseId) as any;
+    if (!foundCase) throw new Error('Case not found');
+
+    const id = 'atr-' + Date.now();
+    const now = new Date().toISOString();
+
+    const transaction = db.transaction(() => {
+      db.prepare(`
+        INSERT INTO action_taken_reports (
+          id, case_id, institution_id, submitted_by_name, submitted_by_role, submission_text, action_taken_date, evidence_files, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        caseId,
+        institutionId,
+        submittedByName,
+        submittedByRole,
+        submissionText,
+        actionTakenDate || now,
+        JSON.stringify(evidenceFiles),
+        now
+      );
+
+      // Add timeline event
+      db.prepare(`
+        INSERT INTO case_events (
+          id, case_id, actor_id, event_type, from_value, to_value, note, created_at, metadata
+        ) VALUES (?, ?, ?, 'ATR_SUBMITTED', ?, 'Action Taken Report (ATR)', ?, ?, ?)
+      `).run(
+        'evt-' + Date.now(),
+        caseId,
+        actor.id,
+        foundCase.status,
+        `Action Taken Report submitted by ${submittedByName}`,
+        now,
+        JSON.stringify({ atrId: id, evidenceCount: evidenceFiles.length })
+      );
+
+      // Add audit event
+      db.prepare(`
+        INSERT INTO audit_events (
+          id, actor_id, actor_name, role, action, target_type, target_id, result, created_at, metadata
+        ) VALUES (?, ?, ?, ?, 'ATR_SUBMISSION', 'case', ?, 'SUCCESS', ?, ?)
+      `).run(
+        'aud-' + Date.now(),
+        actor.id,
+        actor.display_name,
+        actor.role,
+        foundCase.case_number,
+        now,
+        JSON.stringify({ atrId: id, submittedBy: submittedByName, institutionId })
+      );
+    });
+
+    transaction();
+    return this.getById(caseId);
   }
 };
