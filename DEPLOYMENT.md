@@ -38,6 +38,25 @@ git push origin main
 
 ---
 
+### Step 3: Prevent Render Cold Starts with UptimeRobot (100% Free 24/7 Keep-Alive)
+
+Render's free tier spins down (sleeps) services after **15 minutes** of inactivity. When a user visits a sleeping service, it takes **50–90 seconds** to wake up.
+
+By setting up a free monitor on [UptimeRobot](https://uptimerobot.com) to ping your `/health` endpoint every **5 minutes**, your Render service will **stay awake 24/7 with instant page loads**:
+
+1. Create a free account at [uptimerobot.com](https://uptimerobot.com/).
+2. In your UptimeRobot Dashboard, click **+ Add New Monitor**.
+3. Configure the monitor:
+   - **Monitor Type**: Select `HTTP(s)`
+   - **Friendly Name**: `Nexus AICTE - Render Keep Alive`
+   - **URL (or IP)**: `https://<YOUR-RENDER-APP-NAME>.onrender.com/health` (or `/ping`)
+   - **Monitoring Interval**: `5 minutes` (or `10 minutes`)
+4. Click **Create Monitor**.
+
+That's it! UptimeRobot will ping the lightweight `/health` endpoint every 5 minutes, preventing Render from ever sleeping.
+
+---
+
 ## Option 2: Railway.app
 
 1. Go to [railway.app](https://railway.app/) and sign in with GitHub.

@@ -41,14 +41,16 @@ export function createApp() {
   // Demo identity extraction middleware
   app.use(demoAuthMiddleware);
 
-  // Mount API v1 and health check
+  // Mount API v1 and health / keep-alive ping (for Render & UptimeRobot)
   app.use('/api/v1', apiRouter);
-  app.get('/health', (req, res) => {
-    res.json({
+
+  app.get(['/health', '/ping'], (req, res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.status(200).json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      service: 'Nexus 0 - AICTE OneView API',
-      version: '1.0.0-sih2026'
+      uptime: `${Math.floor(process.uptime())}s`,
+      service: 'Nexus - AICTE OneView API'
     });
   });
 
@@ -64,7 +66,7 @@ export function createApp() {
   if (targetDist) {
     app.use(express.static(targetDist));
     app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
+      if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/ping')) {
         return next();
       }
       res.sendFile(path.join(targetDist, 'index.html'));

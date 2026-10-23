@@ -5,7 +5,6 @@ import {
   FileSpreadsheet,
   BarChart3,
   ShieldCheck,
-  Settings2,
   GraduationCap,
   FileCheck,
   X
@@ -124,12 +123,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         label: 'Audit Trail',
         icon: ShieldCheck,
         description: 'Immutable event logs & compliance'
-      },
-      {
-        id: 'admin',
-        label: 'Demo Controls',
-        icon: Settings2,
-        description: 'Role permissions & state reset'
       }
     ];
   }

@@ -143,10 +143,7 @@ export const NexusLogo: React.FC<NexusLogoProps> = ({
             isDark ? 'text-white' : 'text-nexus-navy'
           }`}
         >
-          Nexus{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500 font-extrabold">
-            0
-          </span>
+          Nexus
         </span>
 
         {showSubtitle && (

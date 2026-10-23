@@ -3,11 +3,39 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 17px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (min-width: 640px) {
+    html {
+      font-size: 18px;
+    }
+  }
+
   body {
     background-color: #F5F7FC;
     color: #17233D;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    line-height: 1.5;
   }
+}
+
+/* Scaled up micro-typography so badges, tags, timestamps and captions are clearly readable */
+.text-\[9px\] {
+  font-size: 0.68rem !important;
+  line-height: 1.15 !important;
+}
+
+.text-\[10px\] {
+  font-size: 0.74rem !important;
+  line-height: 1.2 !important;
+}
+
+.text-\[11px\] {
+  font-size: 0.80rem !important;
+  line-height: 1.25 !important;
 }
 
 /* Custom crisp scrollbar */

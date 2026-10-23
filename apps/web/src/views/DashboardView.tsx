@@ -244,14 +244,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E4EAF3" vertical={false} />
-                <XAxis dataKey="month" stroke="#8392A7" fontSize={11} tickLine={false} />
-                <YAxis stroke="#8392A7" fontSize={11} tickLine={false} />
+                <XAxis dataKey="month" stroke="#8392A7" fontSize={13} tickLine={false} />
+                <YAxis stroke="#8392A7" fontSize={13} tickLine={false} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
                     borderRadius: '8px',
                     border: '1px solid #E4EAF3',
-                    fontSize: '12px'
+                    fontSize: '14px'
                   }}
                 />
                 <Area type="monotone" dataKey="received" stroke="#2457D6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRec)" />
